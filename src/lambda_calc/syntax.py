@@ -1,0 +1,67 @@
+
+from adt.tree import Tree
+from parsing.earley.earley import Grammar, Parser, ParseTrees
+from parsing.silly import SillyLexer
+
+
+
+class LambdaParser(object):
+
+    TOKENS = r"(let|in)(?![\w\d_])   (?P<id>\w[\w\d_]*)   (?P<num>\d+)   [\\.()]".split()
+    GRAMMAR = """
+    E   ->  \\.        |   E1  |  E1'
+    E1  ->  @          |   E0
+    E1' ->  @'         |   E0
+    E0  ->  id         |  ( E )
+    \\. ->  \\ L . E 
+    @   ->  E1 E0
+    @'  ->  E1 \\.
+    L   ->  id L |
+    """
+
+    def __init__(self):
+        self.tokenizer = SillyLexer(self.TOKENS)
+        self.grammar = Grammar.from_string(self.GRAMMAR)
+
+    def __call__(self, program_text):
+        tokens = list(self.tokenizer(program_text))
+
+        earley = Parser(grammar=self.grammar, sentence=tokens, debug=False)
+        earley.parse()
+        
+        if earley.is_valid_sentence():
+            trees = ParseTrees(earley)
+            assert(len(trees) == 1)
+            return self.postprocess(trees.nodes[0])
+        else:
+            return None
+            
+    def postprocess(self, t):
+        if t.root in ['γ', 'E', 'E0', 'E1', "E1'"] and len(t.subtrees) == 1:
+            return self.postprocess(t.subtrees[0])
+        elif t.root == 'E0' and t.subtrees[0].root == '(':
+            return self.postprocess(t.subtrees[1])
+        elif t.root == '\\.':
+            t = Tree('\\', [t.subtrees[1], t.subtrees[3]])
+        elif t.root == "@'":
+            t = Tree('@', t.subtrees)
+        elif t.root == 'L':
+            t = Tree('.', t.split())
+
+        return Tree(t.root, [self.postprocess(s) for s in t.subtrees])
+
+
+
+if __name__ == '__main__':
+    
+    expr = LambdaParser()("\\x. x \\z g. y")
+    
+    if expr:
+        print(">> Valid expression.")
+        print(expr)
+    else:
+        print(">> Invalid expression.")
+    
+    #s = Sentence([Word("\\", ["\\"]), Word("x", ["id"]), Word(".", ["."])])
+    
+    
