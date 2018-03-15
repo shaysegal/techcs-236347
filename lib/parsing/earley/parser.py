@@ -3,7 +3,7 @@
 # -*- encoding: utf-8 -*-
 
 from .chart import *
-from .grammar import *
+from .grammar import *  # @UnusedWildImport
 from .sentence import Sentence
 
 

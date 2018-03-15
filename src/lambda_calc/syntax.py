@@ -1,4 +1,5 @@
 
+from functools import reduce
 from adt.tree import Tree
 from parsing.earley.earley import Grammar, Parser, ParseTrees
 from parsing.silly import SillyLexer
@@ -7,12 +8,12 @@ from parsing.silly import SillyLexer
 
 class LambdaParser(object):
 
-    TOKENS = r"(let|in)(?![\w\d_])   (?P<id>\w[\w\d_]*)   (?P<num>\d+)   [\\.()]".split()
+    TOKENS = r"(let|in)(?![\w\d_])   (?P<id>[^\W\d]\w*)   (?P<num>\d+)   [\\.()]".split()
     GRAMMAR = """
     E   ->  \\.        |   E1  |  E1'
     E1  ->  @          |   E0
     E1' ->  @'         |   E0
-    E0  ->  id         |  ( E )
+    E0  ->  id | num   |  ( E )
     \\. ->  \\ L . E 
     @   ->  E1 E0
     @'  ->  E1 \\.
@@ -42,7 +43,8 @@ class LambdaParser(object):
         elif t.root == 'E0' and t.subtrees[0].root == '(':
             return self.postprocess(t.subtrees[1])
         elif t.root == '\\.':
-            t = Tree('\\', [t.subtrees[1], t.subtrees[3]])
+            args = t.subtrees[1].split()
+            t = reduce(lambda t, a: Tree('\\', [a, t]), reversed(args), t.subtrees[3])
         elif t.root == "@'":
             t = Tree('@', t.subtrees)
         elif t.root == 'L':
@@ -54,7 +56,7 @@ class LambdaParser(object):
 
 if __name__ == '__main__':
     
-    expr = LambdaParser()("\\x. x \\z g. y")
+    expr = LambdaParser()("\\x. x \\z g. y 6")
     
     if expr:
         print(">> Valid expression.")

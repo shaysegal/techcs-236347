@@ -19,12 +19,15 @@ class Tree(object):
     def __hash__(self):
         return hash((self.root, tuple(self.subtrees)))
     
-    def __repr__(self):
+    def repr(self, leaf_fmt):
         if self.subtrees:
-            subreprs = ", ".join(repr(x) for x in self.subtrees)
-            return "%r{%s}" % (self.root, subreprs)
+            subreprs = ", ".join(x.repr(leaf_fmt) for x in self.subtrees)
+            return "%s{%s}" % (leaf_fmt(self.root), subreprs)
         else:
-            return repr(self.root)
+            return leaf_fmt(self.root)
+    
+    def __repr__(self):  return self.repr(repr)
+    def __str__(self):   return self.repr(str)
     
     def clone(self):
         return self.reconstruct(self)
