@@ -54,6 +54,14 @@ class LambdaParser(object):
 
 
 
+def pretty(expr):
+    if expr.root in ['id', 'num']: return expr.subtrees[0].root
+    if expr.root == '\\': return r"(\%s. %s)" % tuple(pretty(s) for s in expr.subtrees)
+    elif expr.root == '@': return r"%s %s" % tuple(pretty(s) for s in expr.subtrees)
+    else:
+        return str(expr)
+
+
 if __name__ == '__main__':
     
     expr = LambdaParser()("\\x. x \\z g. y 6")
