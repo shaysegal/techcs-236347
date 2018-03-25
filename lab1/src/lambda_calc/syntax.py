@@ -9,14 +9,14 @@ from parsing.silly import SillyLexer
 class LambdaParser(object):
 
     TOKENS = r"(let|in)(?![\w\d_])   (?P<id>[^\W\d]\w*)   (?P<num>\d+)   [\\.()]".split()
-    GRAMMAR = """
-    E   ->  \\.        |   E1  |  E1'
+    GRAMMAR = r"""
+    E   ->  \.         |   E1  |  E1'
     E1  ->  @          |   E0
     E1' ->  @'         |   E0
     E0  ->  id | num   |  ( E )
-    \\. ->  \\ L . E 
+    \.  ->  \ L . E 
     @   ->  E1 E0
-    @'  ->  E1 \\.
+    @'  ->  E1 \.
     L   ->  id L |
     """
 
@@ -42,7 +42,7 @@ class LambdaParser(object):
             return self.postprocess(t.subtrees[0])
         elif t.root == 'E0' and t.subtrees[0].root == '(':
             return self.postprocess(t.subtrees[1])
-        elif t.root == '\\.':
+        elif t.root == r'\.':
             args = t.subtrees[1].split()
             t = reduce(lambda t, a: Tree('\\', [a, t]), reversed(args), t.subtrees[3])
         elif t.root == "@'":
@@ -64,7 +64,7 @@ def pretty(expr):
 
 if __name__ == '__main__':
     
-    expr = LambdaParser()("\\x. x \\z g. y 6")
+    expr = LambdaParser()(r"\x. x \z g. y 6")
     
     if expr:
         print(">> Valid expression.")
