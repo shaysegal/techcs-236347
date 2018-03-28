@@ -53,7 +53,12 @@ class LambdaParser(object):
         return Tree(t.root, [self.postprocess(s) for s in t.subtrees])
 
 
-
+"""
+Formats an expression for pretty printing.
+Should be called as pretty(e), admitting the default values for `parent` and `allow`;
+these values are suitable for the top-level term.
+They are used subsequently by recursive calls.
+"""
 def pretty(expr, parent=('.', 0), follow=''):
     if expr.root in ['id', 'num']: return expr.subtrees[0].root
     if expr.root == '\\': 
@@ -66,7 +71,9 @@ def pretty(expr, parent=('.', 0), follow=''):
         return str(expr)
     
     n = len(expr.subtrees)
-    return tmpl % tuple(pretty(s, (expr.root, i), expr.root if i < n-1 else follow) for i, s in enumerate(expr.subtrees))
+    return tmpl % tuple(pretty(s, (expr.root, i), expr.root if i < n-1 else follow)
+                        for i, s in enumerate(expr.subtrees))
+
 
 
 if __name__ == '__main__':
