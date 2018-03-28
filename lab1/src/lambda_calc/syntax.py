@@ -54,12 +54,18 @@ class LambdaParser(object):
 
 
 
-def pretty(expr):
+def pretty(expr, parent=('.', 0)):
     if expr.root in ['id', 'num']: return expr.subtrees[0].root
-    if expr.root == '\\': return r"(\%s. %s)" % tuple(pretty(s) for s in expr.subtrees)
-    elif expr.root == '@': return r"%s %s" % tuple(pretty(s) for s in expr.subtrees)
+    if expr.root == '\\': 
+        tmpl = "\%s. %s"
+        if parent == ('@', 0): tmpl = "(%s)" % tmpl
+    elif expr.root == '@':
+        tmpl = "%s %s"
+        if parent == ('@', 1): tmpl = "(%s)" % tmpl
     else:
         return str(expr)
+    
+    return tmpl % tuple(pretty(s, (expr.root, i)) for i, s in enumerate(expr.subtrees))
 
 
 if __name__ == '__main__':
