@@ -8,17 +8,25 @@ from parsing.silly import SillyLexer
 
 class LambdaParser(object):
 
-    TOKENS = r"(let|in)(?![\w\d_])   (?P<id>[^\W\d]\w*)   (?P<num>\d+)   [\\.()=]".split()
+    TOKENS = r"(let|in)(?![\w\d_])   (?P<id>[^\W\d]\w*)   (?P<num>\d+)   [\\.()=:]".split()
     GRAMMAR = r"""
     E    ->  \. | let_    |   E1  |  E1'
     E1   ->  @            |   E0
     E1'  ->  @'           |   E0
     E0   ->  id | num     |  ( E )
-    \.   ->  \ L . E 
+    \.   ->  \ A . E 
     @    ->  E1 E0
     @'   ->  E1 \.
+    A    ->  L:T  |  A1
+    A1   ->  ( L:T ) A0  |  id A0
+    A0   ->  A1 |
     L    ->  id L |
-    let_ ->  let id = E in E
+    T    ->  T->          |  T1
+    T->  ->  T1 -> T
+    T1   ->  id
+    L:T  ->  L : T
+    let_ ->  let id = E in E | let id:T = E in E
+    id:T ->  id : T
     """
 
     def __init__(self):
@@ -39,17 +47,28 @@ class LambdaParser(object):
             return None
             
     def postprocess(self, t):
-        if t.root in ['γ', 'E', 'E0', 'E1', "E1'"] and len(t.subtrees) == 1:
+        if t.root in ['γ', 'E', 'E0', 'E1', "E1'", 'A', 'T'] and len(t.subtrees) == 1:
             return self.postprocess(t.subtrees[0])
         elif t.root == 'E0' and t.subtrees[0].root == '(':
             return self.postprocess(t.subtrees[1])
         elif t.root == r'\.':
-            args = t.subtrees[1].split()
+            args = self.postprocess(t.subtrees[1]).split()
             t = reduce(lambda t, a: Tree('\\', [a, t]), reversed(args), t.subtrees[3])
         elif t.root == "@'":
             t = Tree('@', t.subtrees)
-        elif t.root == 'L':
+        elif t.root in ['L', 'A0']:
             t = Tree('.', t.split())
+        elif t.root == 'A1':
+            r = [self.postprocess(s) for s in t.subtrees]
+            if r[0].root == 'id': return Tree('.', r)
+            elif r[0].root == '(':   #  ( L:T ) A1
+                return Tree('.', r[1].subtrees + r[3:])
+            else:
+                print(r)
+        elif t.root == 'L:T':
+            r = t.subtrees
+            l, ty = r[0], r[2]
+            return Tree('.', [Tree(':', [a, ty]) for a in l.split()])
 
         return Tree(t.root, [self.postprocess(s) for s in t.subtrees])
 
@@ -68,6 +87,8 @@ def pretty(expr, parent=('.', 0), follow=''):
     elif expr.root == '@':
         tmpl = "%s %s"
         if parent == ('@', 1): tmpl = "(%s)" % tmpl
+    elif expr.root == ':':
+        tmpl = "%s : %s"   # for single-argument form
     else:
         return str(expr)
     
@@ -79,10 +100,11 @@ def pretty(expr, parent=('.', 0), follow=''):
 
 if __name__ == '__main__':
     
-    expr = LambdaParser()(r"\x. x \z g. y 6")
+    expr = LambdaParser()(r"\(kj : bool) (x : int) z u. x \z g : F. y 6")
     
     if expr:
         print(">> Valid expression.")
         print(expr)
+        print(pretty(expr))
     else:
         print(">> Invalid expression.")
