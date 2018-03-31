@@ -62,7 +62,7 @@ They are used subsequently by recursive calls.
 def pretty(expr, parent=('.', 0), follow=''):
     if expr.root in ['id', 'num']: return expr.subtrees[0].root
     if expr.root == '\\': 
-        tmpl = "\%s. %s"
+        tmpl = r"\%s. %s"
         if parent == ('@', 0) or parent[0] == follow == '@': tmpl = "(%s)" % tmpl
     elif expr.root == '@':
         tmpl = "%s %s"
