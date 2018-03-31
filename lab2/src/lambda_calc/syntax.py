@@ -47,7 +47,7 @@ class LambdaParser(object):
             return None
             
     def postprocess(self, t):
-        if t.root in ['γ', 'E', 'E0', 'E1', "E1'", 'A', 'T'] and len(t.subtrees) == 1:
+        if t.root in ['γ', 'E', 'E0', 'E1', "E1'", 'A', 'T', 'T1'] and len(t.subtrees) == 1:
             return self.postprocess(t.subtrees[0])
         elif t.root == 'E0' and t.subtrees[0].root == '(':
             return self.postprocess(t.subtrees[1])
@@ -59,16 +59,16 @@ class LambdaParser(object):
         elif t.root in ['L', 'A0']:
             t = Tree('.', t.split())
         elif t.root == 'A1':
-            r = [self.postprocess(s) for s in t.subtrees]
+            r = t.subtrees #[self.postprocess(s) for s in t.subtrees]
             if r[0].root == 'id': return Tree('.', r)
             elif r[0].root == '(':   #  ( L:T ) A1
-                return Tree('.', r[1].subtrees + r[3:])
-            else:
-                print(r)
+                t = Tree('.', r[1].subtrees + r[3:])
         elif t.root == 'L:T':
             r = t.subtrees
             l, ty = r[0], r[2]
             return Tree('.', [Tree(':', [a, ty]) for a in l.split()])
+        elif t.root == 'id:T':
+            t = Tree(':', [t.subtrees[0], t.subtrees[2]])
 
         return Tree(t.root, [self.postprocess(s) for s in t.subtrees])
 
@@ -89,6 +89,8 @@ def pretty(expr, parent=('.', 0), follow=''):
         if parent == ('@', 1): tmpl = "(%s)" % tmpl
     elif expr.root == ':':
         tmpl = "%s : %s"   # for single-argument form
+    elif expr.root == 'let_':
+        return "let %s in %s" % (pretty(expr.subtrees[1]), pretty(expr.subtrees[3]))
     else:
         return str(expr)
     
@@ -100,7 +102,7 @@ def pretty(expr, parent=('.', 0), follow=''):
 
 if __name__ == '__main__':
     
-    expr = LambdaParser()(r"\(kj : bool) (x : int) z u. x \z g : F. y 6")
+    expr = LambdaParser()(r"let plus:int = \x.x in \(kj : bool) (x : int) z u. x \z g : F. y 6")
     
     if expr:
         print(">> Valid expression.")
