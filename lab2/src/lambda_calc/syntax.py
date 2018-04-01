@@ -8,7 +8,7 @@ from parsing.silly import SillyLexer
 
 class LambdaParser(object):
 
-    TOKENS = r"(let|in)(?![\w\d_])   (?P<id>[^\W\d]\w*)   (?P<num>\d+)   [\\.()=:]".split()
+    TOKENS = r"(let|in)(?![\w\d_])   (?P<id>[^\W\d]\w*)   (?P<num>\d+)   [\\.()=:] ->".split()
     GRAMMAR = r"""
     E    ->  \. | let_    |   E1  |  E1'
     E1   ->  @            |   E0
@@ -21,9 +21,9 @@ class LambdaParser(object):
     A1   ->  ( L:T ) A0  |  id A0
     A0   ->  A1 |
     L    ->  id L |
-    T    ->  T->          |  T1
-    T->  ->  T1 -> T
-    T1   ->  id
+    T    ->  T>           |  T1
+    T>   ->  T1 -> T
+    T1   ->  id           |  ( T )
     L:T  ->  L : T
     let_ ->  let id = E in E | let id:T = E in E
     id:T ->  id : T
@@ -49,7 +49,7 @@ class LambdaParser(object):
     def postprocess(self, t):
         if t.root in ['γ', 'E', 'E0', 'E1', "E1'", 'A', 'T', 'T1'] and len(t.subtrees) == 1:
             return self.postprocess(t.subtrees[0])
-        elif t.root == 'E0' and t.subtrees[0].root == '(':
+        elif t.root in ['E0', 'T1'] and t.subtrees[0].root == '(':
             return self.postprocess(t.subtrees[1])
         elif t.root == r'\.':
             args = self.postprocess(t.subtrees[1]).split()
@@ -59,23 +59,23 @@ class LambdaParser(object):
         elif t.root in ['L', 'A0']:
             t = Tree('.', t.split())
         elif t.root == 'A1':
-            r = t.subtrees #[self.postprocess(s) for s in t.subtrees]
+            r = [self.postprocess(s) for s in t.subtrees]
             if r[0].root == 'id': return Tree('.', r)
             elif r[0].root == '(':   #  ( L:T ) A1
-                t = Tree('.', r[1].subtrees + r[3:])
+                return Tree('.', r[1].subtrees + r[3:])
         elif t.root == 'L:T':
-            r = t.subtrees
+            r = [self.postprocess(s) for s in t.subtrees]
             l, ty = r[0], r[2]
-            return Tree('.', [Tree(':', [a, ty]) for a in l.split()])
-        elif t.root == 'id:T':
-            t = Tree(':', [t.subtrees[0], t.subtrees[2]])
+            return Tree('.', [Tree(r[1].root, [a, ty]) for a in l.split()])
+        elif t.root in ['id:T', 'T>']:
+            t = Tree(t.subtrees[1].root, [t.subtrees[0], t.subtrees[2]])
 
         return Tree(t.root, [self.postprocess(s) for s in t.subtrees])
 
 
 """
 Formats an expression for pretty printing.
-Should be called as pretty(e), admitting the default values for `parent` and `allow`;
+Should be called as pretty(e), admitting the default values for `parent` and `follow`;
 these values are suitable for the top-level term.
 They are used subsequently by recursive calls.
 """
@@ -89,8 +89,11 @@ def pretty(expr, parent=('.', 0), follow=''):
         if parent == ('@', 1): tmpl = "(%s)" % tmpl
     elif expr.root == ':':
         tmpl = "%s : %s"   # for single-argument form
+    elif expr.root == '->':
+        tmpl = "%s → %s"
+        if parent == ('->', 0): tmpl = "(%s)" % tmpl
     elif expr.root == 'let_':
-        return "let %s in %s" % (pretty(expr.subtrees[1]), pretty(expr.subtrees[3]))
+        return "let %s = %s in %s" % tuple(pretty(expr.subtrees[i]) for i in (1, 3, 5))
     else:
         return str(expr)
     
@@ -102,7 +105,7 @@ def pretty(expr, parent=('.', 0), follow=''):
 
 if __name__ == '__main__':
     
-    expr = LambdaParser()(r"let plus:int = \x.x in \(kj : bool) (x : int) z u. x \z g : F. y 6")
+    expr = LambdaParser()(r"let plus:int = \x.x in \(kj : bool) (x : (int -> int) -> bool) z u. x \z g : F. y 6")
     
     if expr:
         print(">> Valid expression.")

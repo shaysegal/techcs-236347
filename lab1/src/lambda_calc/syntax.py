@@ -56,7 +56,7 @@ class LambdaParser(object):
 
 """
 Formats an expression for pretty printing.
-Should be called as pretty(e), admitting the default values for `parent` and `allow`;
+Should be called as pretty(e), admitting the default values for `parent` and `follow`;
 these values are suitable for the top-level term.
 They are used subsequently by recursive calls.
 """
