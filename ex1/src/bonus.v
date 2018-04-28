@@ -5,6 +5,8 @@ Import Nat.
 Theorem noether_max P :
   (forall a b, (forall a' b', max a' b' < max a b -> P a' b') -> P a b) ->
   forall a b, P a b.
+(* I have a truly remarkable proof of this theorem which this file  *
+ * is too small to contain.                                         *)
 Admitted.
 
 Theorem case_split_3way P : forall a b,
@@ -20,7 +22,7 @@ Section PlayingWithTheBigBoysNow.
                (* Later on, try to narrow down the search. *)
 
   (*
-  Lemma max_decreases :  ???
+  Lemma max_decreases :  ???        <-----   fill this in and prove!!
   *)
 
   Theorem euclid_terminates : forall a b, a > 0 -> b > 0 -> exists z, euclid a b z.
