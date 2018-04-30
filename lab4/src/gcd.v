@@ -10,6 +10,11 @@ Proof.
   intros. rewrite H. reflexivity.  (* First one's free. *)
 Qed.                               (* Try to understand it though! *)
 
+(* notice that "+" is not defined symmetrically! *)
+Print Nat.add.
+Eval simpl in fun x => 1 + x.
+Eval simpl in fun x => x + 1.
+
 Lemma plus_one : forall x, x + 1 = S x.
 
 Lemma plus_one' : forall x y, x + S y = S x + y.
