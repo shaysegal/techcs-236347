@@ -4,7 +4,14 @@ Import ListNotations.
 
 Require Import Omega.  (* also makes firstorder more powerful! *)
 
-
+(*
+ * M:
+ * 1	if n > 100 then
+ * 2		return n – 10
+ * 3	else	n := M(n + 11)
+ * 4		n := M(n)
+ * 5		return n
+ *)
 
 Definition state : Set := nat * list nat.
 
@@ -24,7 +31,7 @@ Definition inv1 s :=
 (* = Second Invariant = *)
 Definition inv2 (s : state) :=
   match s with
-    (i, n :: xs) => incl xs [0; 4; 5]
+    (i, n :: xs) => forall a, In a xs -> In a [0; 4; 5]
   | _ => False
   end.
 
