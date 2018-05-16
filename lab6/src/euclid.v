@@ -51,17 +51,34 @@ Module MainProof.
   Arguments gt01 n m / : simpl nomatch.
   Arguments ne01 n m / : simpl nomatch.
 
-  Lemma gt0_le x y : gt01 x y = 0 <-> x <= y.  Admitted.
-  Lemma gt1_gt x y : gt01 x y <> 0 <-> x > y.  Admitted.
-  Lemma div_sub a b z : (z | a) -> (z | b) -> (z | a - b).  Admitted.
-  Lemma sub_div1 a b z : a >= b -> (z | a) -> (z | a - b) -> (z | b).  Admitted.
-  Lemma sub_div2 a b z : a >= b -> (z | b) -> (z | a - b) -> (z | a).  Admitted.
-
   Lemma warm_up a0 b0 : hoare (fun s => s a = a0 /\ s b = b0)
                               (assign a [expr_var a `-` expr_var b])
                               (fun s => s a = a0 - b0).
   (* Hint 1: use hoare_weaken_l (from hoare.v).
    * Hint 2: don't forget that you can switch subgoals with Focus <num>. 
+   *)
+
+  (* ----  some free lemmas!  ---- *)
+  Lemma gt0_le x y : gt01 x y = 0 <-> x <= y.  Admitted.
+  Lemma gt1_gt x y : gt01 x y <> 0 <-> x > y.  Admitted.
+  Lemma div_sub a b z : (z | a) -> (z | b) -> (z | a - b).  Admitted.
+  Lemma sub_div1 a b z : a >= b -> (z | a) -> (z | a - b) -> (z | b).  Admitted.
+  Lemma sub_div2 a b z : a >= b -> (z | b) -> (z | a - b) -> (z | a).  Admitted.
+    
+  Lemma aux1 a0 b0 a b: (forall z, (z | a0) /\ (z | b0) <-> (z | a) /\ (z | b)) ->
+                        a > b ->
+                        forall z, (z | a0) /\ (z | b0) <-> (z | a - b) /\ (z | b).
+  Admitted.
+
+  Lemma aux2 a0 b0 a b: (forall z, (z | a0) /\ (z | b0) <-> (z | a) /\ (z | b)) ->
+                        a < b ->
+                        forall z, (z | a0) /\ (z | b0) <-> (z | a) /\ (z | b - a).
+  Admitted.
+
+  (* Hint 3: Use aux1 and aux2 to prove eucliv_inv.
+   *         Then use euclid_inv to prove euclid_post.
+   *         Time permitting, go back to aux1 and aux2 and prove them.
+   *         Use the other lemmas where appropriate.
    *)
   
   Lemma euclid_inv a0 b0 : hoare (fun s => linv a0 b0 s /\ s a <> s b)

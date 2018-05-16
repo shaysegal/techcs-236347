@@ -1,5 +1,4 @@
 Set Implicit Arguments.
-Require Import Nat.
 
 
 Inductive var := a | b | n | x | y.

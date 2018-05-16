@@ -48,7 +48,7 @@ Module MainProof.
                                  (linv n0).
   Proof.
     unfold c. econstructor.
-    2: constructor.
+    2: constructor.     (* abrrev. for `Focus 2. constructor.` *)
     simpl. unfold linv; simpl.
     eapply hoare_weaken_l. 
     2: constructor.
