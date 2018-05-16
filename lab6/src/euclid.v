@@ -35,6 +35,17 @@ Definition divides a b := exists k, a * k = b.
 Notation "( a | b )" := (divides a b).
 
 
+
+Lemma warm_up a0 b0 : hoare (fun s => s a = a0 /\ s b = b0)
+                            (assign a [expr_var a `-` expr_var b])
+                            (fun s => s a = a0 - b0).
+  (* Hint 1: use hoare_weaken_l (from hoare.v).
+   * Hint 2: don't forget that you can switch subgoals with Focus <num>. 
+   *)
+
+
+    
+
 Module MainProof.
 
   Definition c := if_then_else [expr_var a `>` expr_var b]
@@ -50,13 +61,6 @@ Module MainProof.
   Arguments var_eq_dec !v1 !v2.
   Arguments gt01 n m / : simpl nomatch.
   Arguments ne01 n m / : simpl nomatch.
-
-  Lemma warm_up a0 b0 : hoare (fun s => s a = a0 /\ s b = b0)
-                              (assign a [expr_var a `-` expr_var b])
-                              (fun s => s a = a0 - b0).
-  (* Hint 1: use hoare_weaken_l (from hoare.v).
-   * Hint 2: don't forget that you can switch subgoals with Focus <num>. 
-   *)
 
   (* ----  some free lemmas!  ---- *)
   Lemma gt0_le x y : gt01 x y = 0 <-> x <= y.  Admitted.
