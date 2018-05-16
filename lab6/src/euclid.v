@@ -36,6 +36,17 @@ Notation "( a | b )" := (divides a b).
 
 
 
+(* Control the behavior of `simpl` to allow more unfoldings. *)
+(* This should allow you to simplify a substitution term,    *)
+(*   e.g. subst (fun s => s a + 1 = 2) a [expr_var a `+` 1]  *)
+(*        ( in other words, (a + 1 = 2)[a + 1 / a] )         *)
+Arguments subst P v e /.
+Arguments set s v / z.
+Arguments var_eq_dec !v1 !v2.
+Arguments gt01 n m / : simpl nomatch.
+Arguments ne01 n m / : simpl nomatch.
+
+
 Lemma warm_up a0 b0 : hoare (fun s => s a = a0 /\ s b = b0)
                             (assign a [expr_var a `-` expr_var b])
                             (fun s => s a = a0 - b0).
@@ -54,13 +65,6 @@ Module MainProof.
 
   Definition linv a0 b0 :=
     fun s => forall z, (z | a0) /\ (z | b0) <-> (z | s a) /\ (z | s b).
-
-  (* Control the behavior of `simpl` to allow more unfoldings. *)
-  Arguments subst P v e /.
-  Arguments set s v / z.
-  Arguments var_eq_dec !v1 !v2.
-  Arguments gt01 n m / : simpl nomatch.
-  Arguments ne01 n m / : simpl nomatch.
 
   (* ----  some free lemmas!  ---- *)
   Lemma gt0_le x y : gt01 x y = 0 <-> x <= y.  Admitted.
