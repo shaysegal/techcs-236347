@@ -32,8 +32,8 @@ Definition factorial_cmd :=
 
 Module MainProof.
 
-  Definition c := seq (assign a (expr_op (expr_var a) mul (expr_var n)))
-                      (assign n (expr_op (expr_var n) sub (expr_num 1))).
+  Definition c := seq (assign a [expr_var a `*` expr_var n])
+                      (assign n [expr_var n `-` expr_num 1]).
 
   Definition linv n0 s := s a * fact (s n) = fact n0.
 
