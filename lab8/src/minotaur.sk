@@ -21,7 +21,7 @@ int UP = 2;
 int DOWN = 3;
 
 /**
- * Assumes `from` and `to` are exactly one step away
+ * Assumes `from` and `to` are exactly one step apart
  */
 bit can_move(At from, At to) {
   bit cross_wall(int x0, int y0, int x1, int y1) {
