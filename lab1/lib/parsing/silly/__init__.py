@@ -2,10 +2,8 @@
 import re
 from collections import Iterable
 
-from adt.tree import Tree
-from collections import OrderedDict
-from parsing.earley.sentence import Word
-
+from lib.adt.tree import Tree
+from lib.parsing.earley.sentence import Word
 
 
 class SillyLexer(object):
