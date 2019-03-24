@@ -1,6 +1,3 @@
-
-
-
 class Tagged(str):
     """A string with additional attributes ('tags')."""
 
@@ -14,6 +11,6 @@ class Tagged(str):
             return r + self.attrs_fmtd()
         else:
             return r
-        
+
     def attrs_fmtd(self):
-        return "[%s]" % (", ".join('%s=%r' % (k,v) for k,v in self.__dict__.iteritems()))
+        return "[%s]" % (", ".join('%s=%r' % (k, v) for k, v in self.__dict__.items()))

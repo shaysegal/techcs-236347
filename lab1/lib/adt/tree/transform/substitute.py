@@ -15,7 +15,7 @@ class TreeSubstitutionBase(TreeTransform):
     def __init__(self, substitutions={}, *a, **kw):
         super(TreeSubstitutionBase, self) \
             .__init__([self.Transformer(k, self.substitution(v))
-                       for k, v in substitutions.iteritems()], *a, **kw)
+                       for k, v in substitutions.items()], *a, **kw)
         self.substitutions = substitutions
 
     def substitution(self, v):
@@ -61,7 +61,7 @@ class TreePatternSubstitution(TreeSubstitutionBase):
             return self.TreeSubstitution(match_object.groups)(self.template)
 
         def __and__(self, precedes):
-            return self.TreePatternSubstitution.SubstitutionChain([self]) & precedes
+            return TreePatternSubstitution.SubstitutionChain([self]) & precedes
 
         def __repr__(self):
             return repr(self.template)
@@ -99,15 +99,15 @@ class TreePatternSubstitution(TreeSubstitutionBase):
 
         def __call__(self, match_object):
             g = match_object.groups
-            for k, v in self.augment.iteritems():
+            for k, v in self.augment.items():
                 g[k] = v(g)
 
         def __repr__(self):
-            return "(aug. %s)" % ",".join(repr(x) for x in self.augment.iterkeys())
+            return "(aug. %s)" % ",".join(repr(x) for x in self.augment.keys())
 
         def __rand__(self, template):
             if isinstance(template, Tree):
-                T = self.TreePatternSubstitution
+                T = TreePatternSubstitution
                 return (T.Substitution(template) & self)
             else:
                 return NotImplemented
