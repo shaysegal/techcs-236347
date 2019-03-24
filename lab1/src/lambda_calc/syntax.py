@@ -77,11 +77,32 @@ def pretty(expr: Tree, parent: Tuple[str, int] = ('.', 0), follow: str = '') -> 
                         for i, s in enumerate(expr.subtrees))
 
 
+def dot_print(expr: Tree) -> None:
+    from graphviz import Source
+    from os import linesep
+    from tempfile import NamedTemporaryFile
+    temp = """digraph G{
+edge [dir=forward]
+
+"""
+    nodes = {n: i for (i, n) in enumerate(expr.nodes)}
+    edges = {(nodes[n], nodes[s]) for n in expr.nodes for s in n.subtrees}
+
+    def translate_backslash(x): return str(x).replace("\\", "\\\\")
+
+    nodes_string = linesep.join([f"{i} [label=\"{translate_backslash(n.root)}\"]" for n, i in nodes.items()])
+    edges_string = linesep.join([f"{n} -> {s}" for (n, s) in edges])
+    tmp_file = NamedTemporaryFile(delete=False)
+    s = Source(temp + nodes_string + linesep + edges_string + linesep + "}", filename=tmp_file.name)
+    s.view(filename=tmp_file.name)
+
+
 if __name__ == '__main__':
     expr = LambdaParser()(r"\x. x \z g. y 6")
-
+    expr2 = LambdaParser()(r"\x. x \z g. y 6 5 4")
     if expr:
         print(">> Valid expression.")
         print(expr)
+        # dot_print(expr)
     else:
         print(">> Invalid expression.")
