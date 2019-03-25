@@ -1,9 +1,11 @@
 from functools import reduce
 from typing import Optional, Tuple
 
-from lib.adt.tree import Tree
-from lib.parsing.earley.earley import Grammar, Parser, ParseTrees
-from lib.parsing.silly import SillyLexer
+from adt.tree import Tree
+from parsing.earley.earley import Grammar, Parser, ParseTrees
+from parsing.silly import SillyLexer
+
+from adt.tree.viz import dot_print
 
 
 class LambdaParser(object):
@@ -77,26 +79,7 @@ def pretty(expr: Tree, parent: Tuple[str, int] = ('.', 0), follow: str = '') -> 
                         for i, s in enumerate(expr.subtrees))
 
 
-def dot_print(expr: Tree) -> None:
-    from graphviz import Source
-    from os import linesep
-    from tempfile import NamedTemporaryFile
-    temp = """digraph G{
-edge [dir=forward]
-
-"""
-    nodes = {id(n): (i, n) for (i, n) in enumerate(expr.nodes)}
-    edges = {(nodes[id(n)][0], nodes[id(s)][0]) for n in expr.nodes for s in n.subtrees}
-
-    def translate_backslash(x): return str(x).replace("\\", "\\\\")
-
-    nodes_string = linesep.join([f"{i[0]} [label=\"{translate_backslash(i[1].root)}\"]" for n, i in nodes.items()])
-    edges_string = linesep.join([f"{n} -> {s}" for (n, s) in edges])
-    tmp_file = NamedTemporaryFile(delete=False)
-    s = Source(temp + nodes_string + linesep + edges_string + linesep + "}", filename=tmp_file.name)
-    s.view(filename=tmp_file.name)
-
-
+#
 if __name__ == '__main__':
     expr = LambdaParser()(r"\x. x \z g. y 6")
     expr2 = LambdaParser()(r"\x. x \z g. y 6 5 4")
