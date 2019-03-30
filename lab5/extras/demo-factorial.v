@@ -1,5 +1,8 @@
-Set Implicit Arguments.
 Require Import Arith.
+
+
+Load hoare.
+
 
   (* From "Formal Reasoning About Programs"
 
@@ -13,113 +16,82 @@ Require Import Arith.
      }
   *)
 
-  Definition state : Set := nat * nat.     (* (n, a) *)
+Definition gt01 n m := if gt_dec n m then 1 else 0.
 
-  Inductive init n0 : state -> Prop :=
-    start : init n0 (n0, 1).
-  
-  Inductive step : state -> state -> Prop :=
-    step0 : forall n a, n > 0 -> step (n, a) (n - 1, a * n).
+Notation "[ e1 `*` e2 ]" := (expr_op e1 mul e2).
+Notation "[ e1 `-` e2 ]" := (expr_op e1 sub e2).
+Notation "[ e1 `>` e2 ]" := (expr_op e1 gt01 e2).
+
+Definition factorial_cmd :=
+  seq (assign a (expr_num 1))
+      (while [expr_var n `>` expr_num 0]
+             (seq (assign a [expr_var a `*` expr_var n])
+                  (assign n [expr_var n `-` expr_num 1]))).
 
 
-  (*
-   * Specification -- program returns `fact n0`
-   *  (where n0 is the input, i.e. initial value of n)
-   *)
-  Definition spec n0 s :=
-    match s with
-      (0, a) => a = fact n0
-    | _ => True
-    end.
 
-  Print fact.  (* `fact` is defined in the Arith library *)
-  
+Module MainProof.
 
-  (* General Definition *)
-  Section ReflexiveTransitiveClosureDef.
+  Definition c := seq (assign a [expr_var a `*` expr_var n])
+                      (assign n [expr_var n `-` expr_num 1]).
 
-    Variable D : Set.
-    Variable R : D -> D -> Prop.
+  Definition linv n0 s := s a * fact (s n) = fact n0.
 
-    Inductive tc : D -> D -> Prop :=
-      tc_refl : forall s, tc s s
-    | tc_step : forall s u t, R s u -> tc u t -> tc s t.
+  (* Control the behavior of `simpl` to allow more unfoldings. *)
+  Arguments subst P v e /.
+  Arguments set s v / z.
+  Arguments var_eq_dec !v1 !v2.
+  Arguments gt01 n m / : simpl nomatch.
 
-  End ReflexiveTransitiveClosureDef.
-  (* - Notice: from this point on, D and R become *arguments* of tc.
-               D, however, is implicit. *)
-  Check tc.
-  Print Implicit tc.
-
-  
-  Theorem spec_holds n0 s0 s : init n0 s0 -> tc step s0 s -> spec n0 s.
+  Lemma factorial_inv n0 : hoare (fun s => linv n0 s /\ s n > 0)
+                                 c
+                                 (linv n0).
   Proof.
-    intros Init Reach.
-    induction Reach.
-    - destruct Init.
-      simpl. destruct n0.
-      + simpl. reflexivity.
-      + constructor.
-    -     (* stuck. :( *)
-  Abort.  (* well, this didn't work. *)
-
-  (*
-   * Invariant -- supposed to hold for all reachable states.
-   *)
-  Definition inv n0 s :=
-    match s with
-      (n, a) => a * fact n = fact n0
-    end.
-
-  (* Note that this is strictly stronger than spec_holds. *)
-  Lemma inv_inv n0 s0 s : init n0 s0 -> tc step s0 s -> inv n0 s.
-  Proof.
-    intros Init Reach.
-    induction Reach.
-    - (* initial state *)
-      destruct Init.
-      unfold inv.
-      firstorder.
-    -    (* stuck again! *)
-  Abort. (* how rude. *)
-
-  (* Strengthen the proposition even more to make induction work. *)
-  Lemma inv_inv' n0 s0 s : inv n0 s0 -> tc step s0 s -> inv n0 s.
-  Proof.
-    intros Inv Reach.
-    induction Reach.
-    - assumption.
-    - apply IHReach.
-      destruct H.
-      destruct n.
-      + inversion H.
-      + simpl. unfold inv in Inv.
-        rewrite Nat.sub_0_r.
-        rewrite <- Nat.mul_assoc.
-        assumption.
-  Qed. (* third time's the charm *)
-
-  (* Let's try that one again, now it should be easy. *)
-  Lemma inv_inv n0 s0 s : init n0 s0 -> tc step s0 s -> inv n0 s.
-  Proof.
-    intro Init; apply inv_inv'.
-    destruct Init.
-    unfold inv.
-    firstorder.
+    unfold c. econstructor.
+    2: constructor.     (* abrrev. for `Focus 2. constructor.` *)
+    simpl. unfold linv; simpl.
+    eapply hoare_weaken_l. 
+    2: constructor.
+    simpl.
+    intros. firstorder.
+    destruct (s n) as [|k].
+    - inversion H0.
+    - simpl.
+      rewrite Nat.sub_0_r. rewrite <- Nat.mul_assoc. assumption.
   Qed.
 
-  (* And lastly. *)
-  Theorem spec_holds n0 s0 s : init n0 s0 -> tc step s0 s -> spec n0 s.
+
+  Lemma factorial_correct n0 : hoare (fun s => s n = n0)
+                                     factorial_cmd
+                                     (fun s => s a = fact n0).
   Proof.
-    intros.
-    enough (inv n0 s).
-    - destruct s.
-      unfold spec.
-      destruct n, H1.
-      + simpl. firstorder.
-      + constructor.
-    - eapply inv_inv.
-      eassumption.
-      assumption.
+    econstructor.
+    Focus 2.
+    { econstructor.
+      + intros; eassumption.
+      + econstructor. simpl.
+        eapply hoare_weaken_l.
+        Focus 2.
+        * apply factorial_inv.
+          
+        * firstorder.
+          { destruct (s n).
+            - firstorder.
+            - firstorder.
+          }
+      + simpl. firstorder. unfold linv in H.
+        destruct (s n).
+        * rewrite Nat.mul_1_r in H. eassumption.
+        * simpl in H0. discriminate.
+    }
+    Unfocus.
+    eapply hoare_weaken_l.
+    Focus 2.
+    econstructor.
+    intros; unfold linv; simpl.
+    subst; firstorder.
   Qed.
-  
+
+End MainProof.
+
+
