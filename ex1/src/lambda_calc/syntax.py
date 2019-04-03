@@ -1,13 +1,10 @@
-
 from functools import reduce
-from adt.tree import Tree
-from parsing.earley.earley import Grammar, Parser, ParseTrees
-from parsing.silly import SillyLexer
-
+from lib.adt.tree import Tree
+from lib.parsing.earley.earley import Grammar, Parser, ParseTrees
+from lib.parsing.silly import SillyLexer
 
 
 class LambdaParser(object):
-
     TOKENS = r"(let|in)(?![\w\d_])   (?P<id>[^\W\d]\w*)   (?P<num>\d+)   [\\.()=:] ->".split()
     GRAMMAR = r"""
     E    ->  \. | let_    |   E1  |  E1'
@@ -38,14 +35,14 @@ class LambdaParser(object):
 
         earley = Parser(grammar=self.grammar, sentence=tokens, debug=False)
         earley.parse()
-        
+
         if earley.is_valid_sentence():
             trees = ParseTrees(earley)
-            assert(len(trees) == 1)
+            assert (len(trees) == 1)
             return self.postprocess(trees.nodes[0])
         else:
             return None
-            
+
     def postprocess(self, t):
         if t.root in ['γ', 'E', 'E0', 'E1', "E1'", 'A', 'T', 'T1'] and len(t.subtrees) == 1:
             return self.postprocess(t.subtrees[0])
@@ -60,8 +57,9 @@ class LambdaParser(object):
             t = Tree('.', t.split())
         elif t.root == 'A1':
             r = [self.postprocess(s) for s in t.subtrees]
-            if r[0].root == 'id': return Tree('.', r)
-            elif r[0].root == '(':   #  ( L:T ) A1
+            if r[0].root == 'id':
+                return Tree('.', r)
+            elif r[0].root == '(':  # ( L:T ) A1
                 return Tree('.', r[1].subtrees + r[3:])
         elif t.root == 'L:T':
             r = [self.postprocess(s) for s in t.subtrees]
@@ -79,16 +77,18 @@ Should be called as pretty(e), admitting the default values for `parent` and `fo
 these values are suitable for the top-level term.
 They are used subsequently by recursive calls.
 """
+
+
 def pretty(expr, parent=('.', 0), follow=''):
     if expr.root in ['id', 'num']: return expr.subtrees[0].root
-    if expr.root == '\\': 
+    if expr.root == '\\':
         tmpl = r"\%s. %s"
         if parent == ('@', 0) or parent[0] == follow == '@': tmpl = "(%s)" % tmpl
     elif expr.root == '@':
         tmpl = "%s %s"
         if parent == ('@', 1): tmpl = "(%s)" % tmpl
     elif expr.root == ':':
-        tmpl = "%s : %s"   # for single-argument form
+        tmpl = "%s : %s"  # for single-argument form
     elif expr.root == '->':
         tmpl = "%s → %s"
         if parent == ('->', 0): tmpl = "(%s)" % tmpl
@@ -96,17 +96,16 @@ def pretty(expr, parent=('.', 0), follow=''):
         return "let %s = %s in %s" % tuple(pretty(expr.subtrees[i]) for i in (1, 3, 5))
     else:
         return str(expr)
-    
+
     n = len(expr.subtrees)
-    return tmpl % tuple(pretty(s, (expr.root, i), expr.root if i < n-1 else follow)
+    return tmpl % tuple(pretty(s, (expr.root, i), expr.root if i < n - 1 else follow)
                         for i, s in enumerate(expr.subtrees))
 
 
-
 if __name__ == '__main__':
-    
+
     expr = LambdaParser()(r"let plus:int = \x.x in \(kj : bool) (x : (int -> int) -> bool) z u. x \z g : F. y 6")
-    
+
     if expr:
         print(">> Valid expression.")
         print(expr)
