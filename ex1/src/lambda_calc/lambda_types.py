@@ -10,14 +10,12 @@ from src.lambda_calc.stdlib import CONSTANTS
 from lib.adt.tree import Tree
 
 
-def type_inference(expr: Tree) -> (Tree, dict, Tree):
+def type_inference(expr: Tree) -> (Tree, Tree):
     """
     Input: an expression.
     Output (tuple):
      * An annotated expression where every bound variable has a 
        type assignment. Tree
-     * The types of free variables occurring in the expression. Dictionary from node to type (tree)
-     * The type of the expression.
      * If uncountered a unification error raise TypeError('Unification error')
      * If there are insufficient types raise TypeError('insufficient type tags error')
     """
