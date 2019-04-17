@@ -1,5 +1,4 @@
-from .syntax import LambdaParser
-
+from src.lambda_calc.syntax import LambdaParser
 
 
 DECLARATIONS = """
