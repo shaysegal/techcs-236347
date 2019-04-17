@@ -78,8 +78,9 @@ Section Naturals.
   Qed.
   
   (*
-  Inductive ex (A : Type) (P : A -> Prop) : Prop :=
-    ex_intro : forall x : A, P x -> exists y, P y
+  Inductive le (n : nat) : nat -> Prop :=
+    le_n : n <= n
+  | le_S : forall m : nat, n <= m -> n <= S m
   *)
 
   Fixpoint le_0 n : 0 <= n :=
