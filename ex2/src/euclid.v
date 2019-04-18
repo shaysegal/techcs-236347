@@ -23,6 +23,6 @@ Inductive euclid : nat -> nat -> nat -> Prop :=
 | step_b' : forall a b z, a < b -> euclid a (b - a) z -> euclid a b z.  
 
 
-Search "+" "-".   (* remember to use Search, or C-c C-a C-a *)
+Search "+" "-".   (* remember to use Search to find lemmas *)
 
 Theorem euclid_gcd : forall a b z, euclid a b z -> gcd a b z.
