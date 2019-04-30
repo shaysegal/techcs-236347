@@ -1,5 +1,6 @@
 Set Implicit Arguments.
 Require Import Arith.
+Import Nat.
 
   (* From "Formal Reasoning About Programs"
 
@@ -13,13 +14,18 @@ Require Import Arith.
      }
   *)
 
-  Definition state : Set := nat * nat.     (* (n, a) *)
+  Inductive state : Set :=
+    InLoop: nat -> nat -> state      (* n, a *)
+  | Exit:   nat -> state.          (* a *)
 
   Inductive init n0 : state -> Prop :=
-    start : init n0 (n0, 1).
+    start : init n0 (InLoop n0 1).
   
   Inductive step : state -> state -> Prop :=
-    step0 : forall n a, n > 0 -> step (n, a) (n - 1, a * n).
+    iter : forall n a, 0 < n -> 
+      step (InLoop n a) (InLoop (n - 1) (a * n))
+  | stop : forall a, 
+      step (InLoop 0 a) (Exit a).
 
 
   (*
@@ -28,7 +34,7 @@ Require Import Arith.
    *)
   Definition spec n0 s :=
     match s with
-      (0, a) => a = fact n0
+      Exit a => a = fact n0
     | _ => True
     end.
 
@@ -57,10 +63,9 @@ Require Import Arith.
     intros Init Reach.
     induction Reach.
     - destruct Init.
-      simpl. destruct n0.
-      + simpl. reflexivity.
-      + constructor.
-    -     (* stuck. :( *)
+      simpl. constructor.
+    - apply IHReach.
+                        (* stuck. :( *)
   Abort.  (* well, this didn't work. *)
 
   (*
@@ -68,7 +73,8 @@ Require Import Arith.
    *)
   Definition inv n0 s :=
     match s with
-      (n, a) => a * fact n = fact n0
+      InLoop n a => a * fact n = fact n0
+    | Exit a => a = fact n0
     end.
 
   (* Note that this is strictly stronger than spec_holds. *)
@@ -76,11 +82,11 @@ Require Import Arith.
   Proof.
     intros Init Reach.
     induction Reach.
-    - (* initial state *)
-      destruct Init.
+    - destruct Init.
       unfold inv.
       firstorder.
-    -    (* stuck again! *)
+    - apply IHReach.
+                     (* stuck again! *)
   Abort. (* how rude. *)
 
   (* Strengthen the proposition even more to make induction work. *)
@@ -91,18 +97,19 @@ Require Import Arith.
     - assumption.
     - apply IHReach.
       destruct H.
-      destruct n.
-      + inversion H.
-      + simpl. unfold inv in Inv.
-        rewrite Nat.sub_0_r.
-        rewrite <- Nat.mul_assoc.
-        assumption.
+      + destruct n.
+        * inversion H.     (**) Print Peano.lt.
+        * unfold inv. unfold inv in Inv. 
+          simpl. rewrite sub_0_r.
+          rewrite <- mul_assoc. assumption.
+      + unfold inv. unfold inv in Inv.
+        rewrite <- Inv. simpl. apply eq_sym, mul_1_r.
   Qed. (* third time's the charm *)
 
   (* Let's try that one again, now it should be easy. *)
   Lemma inv_inv n0 s0 s : init n0 s0 -> tc step s0 s -> inv n0 s.
   Proof.
-    intro Init; apply inv_inv'.
+    intro Init. apply inv_inv'.
     destruct Init.
     unfold inv.
     firstorder.
@@ -123,3 +130,4 @@ Require Import Arith.
       assumption.
   Qed.
   
+

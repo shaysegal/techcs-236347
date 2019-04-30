@@ -116,7 +116,7 @@ Section Naturals.
     reflexivity.
   Qed.
   
-  Lemma plus_1 : n + 1 = S n.
+  Lemma plus_n_1 : n + 1 = S n.
   Proof.
     induction n.
     - simpl. reflexivity.
@@ -135,7 +135,7 @@ Proof.
 Qed.
 
 
-Lemma sample1 : forall m n, m * (S n) = m * (1 + n).
+Lemma fsample1 : forall m n, m * (S n) = m * (1 + n).
 Proof.
   intros.
   apply f_equal.
@@ -145,7 +145,7 @@ Qed.
 Require Import PeanoNat.
 Import Nat.
 
-Lemma sample2 : forall m n, m * (S n) = m * (n + 1).
+Lemma fsample2 : forall m n, m * (S n) = m * (n + 1).
 Proof.
   intros.
   apply f_equal.

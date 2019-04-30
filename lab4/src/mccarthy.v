@@ -1,58 +1,54 @@
 Set Implicit Arguments.
-Require Import List.
-Import ListNotations.
 
-Require Import Omega.  (* also makes firstorder more powerful! *)
+Require Import Arith.
+Import Nat.
 
 (*
  * M:
- * 1	if n > 100 then
- * 2		return n – 10
- * 3	else	n := M(n + 11)
- * 4		n := M(n)
- * 5		return n
+ * 1	c = 1 
+ * 2  while c > 0 
+ * 3    if n > 100 
+ * 4      n := n – 10 
+ * 5      c := c – 1 
+ * 6    else
+ * 7      n := n + 11 
+ * 8      c := c + 1 
+ * 9  return n
  *)
 
-Definition state : Set := nat * list nat.
+Definition state : Set := nat * nat.  (* n, c *)
 
 Inductive step : state -> state -> Prop :=
-  step1_hi : forall n x xs, n > 100 -> step (1, n :: x :: xs) (x, (n - 10) :: xs)
-| step1_lo : forall n xs, n <= 100 -> step (1, n :: xs) (1, (n + 11) :: 4 :: xs)
-| step4 : forall n xs, step (4, n :: xs) (1, n :: 5 :: xs)
-| step5 : forall n x xs, step (5, n :: x :: xs) (x, n :: xs).
+  step_hi : forall n c, c > 0 -> n > 100 -> step (n, c) (n - 10, c - 1)
+| step_lo : forall n c, c > 0 -> n <= 100 -> step (n, c) (n + 11, c + 1).
 
-(* = First Invariant = *)
-Definition inv1 s :=
+(* = Loop Invariant = *)
+Definition inv s :=
   match s with
-    (i, n :: xs) => i = 1 \/ i = 4 \/ In 4 xs \/ n >= 91
-  | _ => False
+    (n, c) => n <= c * 10 + 91
   end.
 
-(* = Second Invariant = *)
-Definition inv2 (s : state) :=
-  match s with
-    (i, n :: xs) => forall a, In a xs -> In a [0; 4; 5]
-  | _ => False
-  end.
-
-(* auxiliary: a simple recursive function that 
-   counts occurrences of 4 in a list *)
-Fixpoint cnt4 l :=
-  match l with
-      [] => 0
-  | 4 :: xs => 1 + cnt4 xs
-  | _ :: xs => cnt4 xs
-  end.
-
-(* = Third Invariant = *)
-Definition inv3 (s : state) :=
-  match s with
-    (i, n :: xs) => (i = 1 \/ i = 4) /\ n <= (cnt4 xs) * 10 + 101 \/
-                   (i = 0 \/ i = 5) /\ n <= (cnt4 xs) * 10 + 91
-  | _ => False
-  end.
+(* Useful arithmetic lemmas from the standard library *)
+Check le_add_r.
+Check sub_le_mono_r.
+Check add_sub_swap.
+Check add_comm.
+Check mul_succ_l.
+Check mul_sub_distr_r.
 
 
+Lemma preserves s1 s2 : inv s1 -> step s1 s2 -> inv s2.
+Proof.
+  destruct s1 as [n1 c1], s2 as [n2 c2]. (* gives names to state vars *)  
+  unfold inv.
+  intros Before Step.
+  (* ... *)
+Qed.
+
+(*
+ * Now we prove that the invariant holds for all reachable 
+ * states.
+ *)
 Section ReflexiveTransitiveClosureDef.
 
   Variable D : Set.
@@ -63,22 +59,15 @@ Section ReflexiveTransitiveClosureDef.
   | tc_step : forall s u t, R s u -> tc u t -> tc s t.
 
 End ReflexiveTransitiveClosureDef.
-
-(*
- * The invariant property is expressed over all reachable states.
- *)
-Definition inv123 s := inv1 s /\ inv2 s /\ inv3 s.
-
-(* Hint 1: try to prove each invariant separately, as lemmas, before
-           combining them to prove inv123_tc.
-   Hint 2: inv3 depends on inv2!
-*)
                                               
-Lemma inv123_tc s1 s2 : inv123 s1 -> tc step s1 s2 -> inv123 s2.
+
+Lemma inv_tc s1 s2 : inv s1 -> tc step s1 s2 -> inv s2.
 
 
 Theorem mccarthy91 n n' : n <= 101 ->
-                          tc step (1, [n; 0]) (0, [n']) ->
-                          n' = 91.
+                          tc step (n, 1) (n', 0) ->
+                          n' <= 91.
 
-  
+(*
+ * Bonus: prove that n' >= 91 as well.
+ *)
