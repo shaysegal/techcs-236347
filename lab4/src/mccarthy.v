@@ -39,8 +39,6 @@ Check mul_sub_distr_r.
 
 Lemma preserves s1 s2 : inv s1 -> step s1 s2 -> inv s2.
 Proof.
-  destruct s1 as [n1 c1], s2 as [n2 c2]. (* gives names to state vars *)  
-  unfold inv.
   intros Before Step.
   (* ... *)
 Qed.
@@ -62,7 +60,6 @@ End ReflexiveTransitiveClosureDef.
                                               
 
 Lemma inv_tc s1 s2 : inv s1 -> tc step s1 s2 -> inv s2.
-
 
 Theorem mccarthy91 n n' : n <= 101 ->
                           tc step (n, 1) (n', 0) ->
