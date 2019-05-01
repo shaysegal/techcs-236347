@@ -2,6 +2,12 @@ Require Import Arith.Arith.
 Import Nat.
 
 
+Inductive euclid : nat -> nat -> nat -> Prop :=   (* copied from euclid.v *)
+  stop    : forall z, euclid z z z
+| step_a' : forall a b z, a > b -> euclid (a - b) b z -> euclid a b z
+| step_b' : forall a b z, a < b -> euclid a (b - a) z -> euclid a b z.  
+
+
 Theorem noether_max P :
   (forall a b, (forall a' b', max a' b' < max a b -> P a' b') -> P a b) ->
   forall a b, P a b.
