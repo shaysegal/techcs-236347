@@ -3,7 +3,7 @@ Require Import Omega.
 Import Nat.
 
 
-Load hoare.
+Load "./hoare".
 
 
 (*
@@ -36,10 +36,12 @@ Notation "( a | b )" := (divides a b).
 
 
 
-(* Control the behavior of `simpl` to allow more unfoldings. *)
-(* This should allow you to simplify a substitution term,    *)
-(*   e.g. subst (fun s => s a + 1 = 2) a [expr_var a `+` 1]  *)
-(*        ( in other words, (a + 1 = 2)[a + 1 / a] )         *)
+(* Control the behavior of `simpl` to allow more unfoldings.            *)
+(* This should allow you to simplify a substitution term,               *)
+(*   e.g. subst (fun s => s a + 1 = 2) a [expr_var a `-` expr_num 1] s  *)
+(*        ( in other words, (a + 1 = 2)[a - 1 / a] )                    *)
+(*     simplifies to                                                    *)
+(*        s a - 1 + 1 = 2                                               *)
 Arguments subst P v e /.
 Arguments set s v / z.
 Arguments var_eq_dec !v1 !v2.
@@ -51,7 +53,7 @@ Lemma warm_up a0 b0 : hoare (fun s => s a = a0 /\ s b = b0)
                             (assign a [expr_var a `-` expr_var b])
                             (fun s => s a = a0 - b0).
   (* Hint 1: use hoare_weaken_l (from hoare.v).
-   * Hint 2: don't forget that you can switch subgoals with Focus <num>. 
+   * Hint 2: you can switch subgoals with Focus <num>. 
    *)
 
 
@@ -66,7 +68,7 @@ Module MainProof.
   Definition linv a0 b0 :=
     fun s => forall z, (z | a0) /\ (z | b0) <-> (z | s a) /\ (z | s b).
 
-  (* ----  some free lemmas!  ---- *)
+  (* ----  some free lemmas!  (you don't have to prove them)  ---- *)
   Lemma gt0_le x y : gt01 x y = 0 <-> x <= y.  Admitted.
   Lemma gt1_gt x y : gt01 x y <> 0 <-> x > y.  Admitted.
   Lemma div_sub a b z : (z | a) -> (z | b) -> (z | a - b).  Admitted.

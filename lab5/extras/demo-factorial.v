@@ -37,7 +37,13 @@ Module MainProof.
 
   Definition linv n0 s := s a * fact (s n) = fact n0.
 
-  (* Control the behavior of `simpl` to allow more unfoldings. *)
+  (* Control the behavior of `simpl` to allow more unfoldings.            *)
+  (*                                                                      *)
+  (* This should allow you to simplify a substitution term,               *)
+  (*   e.g. subst (fun s => s a + 1 = 2) a [expr_var a `-` expr_num 1] s  *)
+  (*        ( in other words, (a + 1 = 2)[a - 1 / a] )                    *)
+  (*     simplifies to                                                    *)
+  (*        s a - 1 + 1 = 2                                               *)
   Arguments subst P v e /.
   Arguments set s v / z.
   Arguments var_eq_dec !v1 !v2.

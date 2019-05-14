@@ -37,6 +37,7 @@ Defined.
 Definition set (s : state) (v : var) (z : nat) :=
   fun v' => if var_eq_dec v v' then z else s v'.
 
+(* subst P v e  ===  P[e/v] *)
 Definition subst (P : assertion) v e :=
   fun s : state => P (set s v (sem e s)).
 
@@ -59,6 +60,12 @@ Inductive hoare : assertion -> cmd -> assertion -> Prop :=
     hoare P' c Q'.
 
 
+(* weaken left:                      *)
+(*                                   *)
+(*        P' => P   {P} c {Q}        *)
+(*     -------------------------     *)
+(*            {P'} c {Q}             *)
+(*                                   *)
 Corollary hoare_weaken_l : forall (P' P : assertion) c (Q : assertion),
     (forall s, P' s -> P s) -> hoare P c Q -> hoare P' c Q.
 Proof.
@@ -68,6 +75,12 @@ Proof.
   - firstorder.
 Qed.
 
+(* weaken right:                     *)
+(*                                   *)
+(*        {P} c {Q}   Q => Q'        *)
+(*     -------------------------     *)
+(*            {P} c {Q'}             *)
+(*                                   *)
 Corollary hoare_weaken_r : forall (P : assertion) c (Q Q' : assertion),
     hoare P c Q -> (forall s, Q s -> Q' s) -> hoare P c Q'.
 Proof.
@@ -77,6 +90,12 @@ Proof.
   - assumption.
 Qed.
 
+(* weaken + seq:                                      *)
+(*                                                    *)
+(*      {P1} c1 {Q1}   Q1 => P2   {P2} c2 {Q2}        *)
+(*     ----------------------------------------       *)
+(*                 {P1} c1;c2 {Q2}                    *)
+(*                                                    *)
 Lemma hoare_seq_weaken P1 c1 Q1 P2 c2 Q2 :
   hoare P1 c1 Q1 -> hoare P2 c2 Q2 -> (forall s, Q1 s -> P2 s) ->
   hoare P1 (seq c1 c2) Q2.
@@ -88,4 +107,5 @@ Proof.
     + eassumption.
     + intros; assumption.
 Qed.
+
 
