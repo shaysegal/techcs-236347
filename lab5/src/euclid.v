@@ -7,12 +7,12 @@ Load "./hoare".
 
 
 (*
-euclid(a, b):
-  while a != b do
-    if a > b then
-      a := a - b
-    else
-      b := b - a
+  euclid(a, b):
+    while a != b do
+      if a > b then
+        a := a - b
+      else
+        b := b - a
  *)
 
 Definition gt01 n m := if gt_dec n m then 1 else 0.
@@ -27,10 +27,10 @@ Notation "# n" := (expr_num n) (at level 7, format "# n").
 
 
 Definition euclid_cmd :=
-  while [expr_var a `!=` expr_var b]
-        (if_then_else [expr_var a `>` expr_var b]
-                      (assign a [expr_var a `-` expr_var b])
-                      (assign b [expr_var b `-` expr_var a])).
+  while [$a `!=` $b]
+        (if_then_else [$a `>` $b]
+                      (assign a [$a `-` $b])
+                      (assign b [$b `-` $a])).
 
 
 (* Definition of divisibility + some syntactic sugar *)
@@ -53,21 +53,26 @@ Arguments gt01 n m / : simpl nomatch.
 Arguments ne01 n m / : simpl nomatch.
 
 
+(* Warm-up exercise:                               *)
+(*                                                 *)
+(*  {a = a0 /\ b = b0}  a := a - b  {a = a0 - b0}  *)
+(*                                                 *)
 Lemma warm_up a0 b0 : hoare (fun s => s a = a0 /\ s b = b0)
-                            (assign a [expr_var a `-` expr_var b])
+                            (assign a [$a `-` $b])
                             (fun s => s a = a0 - b0).
   (* Hint 1: use hoare_weaken_l (from hoare.v).
    * Hint 2: you can switch subgoals with Focus <num>. 
    *)
 
 
-    
+
+
 
 Module MainProof.
 
-  Definition c := if_then_else [expr_var a `>` expr_var b]
-                               (assign a [expr_var a `-` expr_var b])
-                               (assign b [expr_var b `-` expr_var a]).
+  Definition c := if_then_else [$a `>` $b]
+                               (assign a [$a `-` $b])
+                               (assign b [$b `-` $a]).
 
   Definition linv a0 b0 :=
     fun s => forall z, (z | a0) /\ (z | b0) <-> (z | s a) /\ (z | s b).
@@ -99,9 +104,16 @@ Module MainProof.
                                  c
                                  (linv a0 b0).
 
+
+
+
   Theorem euclid_post a0 b0 : hoare (fun s => s a = a0 /\ s b = b0)
                                     euclid_cmd
                                     (fun s => forall z, (z | a0) /\ (z | b0) <-> (z | s a)).
 
     
 End MainProof.
+
+
+
+
