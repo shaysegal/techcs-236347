@@ -91,17 +91,17 @@ Module MainProof.
   (*                                                       *)
   Lemma factorial_inv' n0 : hoare (linv n0)
                                   (while [$n `>` #0] c)
-                                  (fun s => linv n0 s /\ s n <= 0).
+                                  (fun s => linv n0 s /\ s n = 0).
   Proof.
     eapply hoare_weaken_r.
     - econstructor. simpl. eapply hoare_weaken_l.
       + intros. rewrite gt1_gt in H. apply H.
       + apply factorial_inv.
     - simpl. intros. firstorder.
-      apply gt0_le. assumption.
+      apply gt0_le in H0. omega.
   Qed.
 
-  Lemma final n0 s : linv n0 s -> s n <= 0 -> s a = fact n0.
+  Lemma final n0 s : linv n0 s -> s n = 0 -> s a = fact n0.
   Admitted.
 
   (*                                                 *)
