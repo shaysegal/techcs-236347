@@ -38,8 +38,9 @@ Definition factorial_cmd :=
 Module MainProof.
 
   Definition c := seq (assign a [$a `*` $n])
-                      (assign n [$n `-` $1]).
+                      (assign n [$n `-` #1]).
 
+  (* Loop invariant:  a * n! = n0!  *)
   Definition linv n0 (s : state) := s a * fact (s n) = fact n0.
 
   (* Control the behavior of `simpl` to allow more unfoldings.            *)
@@ -54,6 +55,15 @@ Module MainProof.
   Arguments var_eq_dec !v1 !v2.
   Arguments gt01 n m / : simpl nomatch.
 
+  (*                                     *)
+  (*  { linv /\ n > 0 }  c  { linv }     *)
+  (*                                     *)
+  (* or:                                 *)
+  (*                                     *)
+  (*  { a * n! = n0 /\ n > 0 }           *)
+  (*  a := a * n ; n := n - 1            *)
+  (*  { a * n! = n0 }                    *)
+  (*                                     *)
   Lemma factorial_inv n0 : hoare (fun s => linv n0 s /\ s n > 0)
                                  c
                                  (linv n0).
@@ -64,11 +74,12 @@ Module MainProof.
     eapply hoare_weaken_l.
     Focus 2. apply hoare_assign.
     simpl.
+    (* now it's just a game of arithmetics *)
     firstorder.
-    destruct (s n) as [|k].
+    destruct (s n).
     - inversion H0.
     - simpl.
-      rewrite Nat.sub_0_r. rewrite <- Nat.mul_assoc. assumption.
+      rewrite sub_0_r. rewrite <- mul_assoc. assumption.
   Qed.
 
 
@@ -92,7 +103,7 @@ Module MainProof.
           }
       + simpl. firstorder. unfold linv in H.
         destruct (s n).
-        * rewrite Nat.mul_1_r in H. eassumption.
+        * rewrite mul_1_r in H. eassumption.
         * simpl in H0. discriminate.
     }
     Unfocus.
@@ -104,6 +115,7 @@ Module MainProof.
   Qed.
 
 End MainProof.
+
 
 
 
