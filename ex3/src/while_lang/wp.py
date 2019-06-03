@@ -18,6 +18,16 @@ def upd(d, k, v):
     d[k] = v
     return d
 
+def verify(P, ast, Q):
+    """
+    Verifies a Hoare triple {P} c {Q}
+    Where P, Q are assertions (see below for examples)
+    and ast is the AST of the command c.
+    """
+
+    print(ast)
+    # ...
+
 
 
 
@@ -53,8 +63,8 @@ if __name__ == '__main__':
     
     if ast:
         print(">> Valid program.")
-        # Now something like:
-        # verify(P, ast, Q)
+        # Your task is to implement "verify"
+        verify(P, ast, Q)
     else:
         print(">> Invalid program.")
 
