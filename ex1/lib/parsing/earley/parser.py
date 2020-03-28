@@ -7,7 +7,6 @@ from .grammar import *  # @UnusedWildImport
 from .sentence import Sentence
 
 
-
 class Parser:
     GAMMA_SYMBOL = 'γ'
 

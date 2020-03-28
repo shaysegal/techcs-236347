@@ -3,6 +3,7 @@
 # -*- encoding: utf-8 -*-
 import re
 
+
 class Word:
     def __init__(self, word = '', tags = []):
         '''Initialize a word with a list of tags'''
@@ -12,6 +13,7 @@ class Word:
     def __repr__(self):
         '''Nice string representation'''
         return "{0}<{1}>".format(self.word, ','.join(self.tags))
+
 
 class Sentence:
     def __init__(self, words = []):

@@ -2,13 +2,12 @@
 # coding=utf-8
 # -*- encoding: utf-8 -*-
 
-from lib.adt.tree import Tree
-
+from adt.tree import Tree
 
 
 class ParseTrees:
     def __init__(self, parser):
-        '''Initialize a syntax tree parsing process'''
+        """Initialize a syntax tree parsing process"""
         self.parser = parser
         self.charts = parser.charts
         self.length = len(parser)
@@ -18,7 +17,7 @@ class ParseTrees:
             self.nodes.extend(self.build_nodes(root))
 
     def __len__(self):
-        '''Trees count'''
+        """Trees count"""
         return len(self.nodes)
 
     def __repr__(self):

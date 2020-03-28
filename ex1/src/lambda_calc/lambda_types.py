@@ -5,9 +5,9 @@ Your task:
 Implement type checking and type inference for simply-typed lambda calculus.
 """
 
-from src.lambda_calc.syntax import LambdaParser, pretty
-from src.lambda_calc.stdlib import CONSTANTS
-from lib.adt.tree import Tree
+from lambda_calc.syntax import LambdaParser, pretty
+from lambda_calc.stdlib import CONSTANTS
+from adt.tree import Tree
 
 
 def type_inference(expr: Tree) -> (Tree, Tree):
@@ -15,9 +15,9 @@ def type_inference(expr: Tree) -> (Tree, Tree):
     Input: an expression.
     Output (tuple):
      * An annotated expression where every bound variable has a 
-       type assignment. Tree
-     * If uncountered a unification error raise TypeError('Unification error')
-     * If there are insufficient types raise TypeError('insufficient type tags error')
+       type annotation. (type Tree)
+     * If encountered a unification error, raise TypeError('type mismatch')
+     * If some types cannot be inferred, raise TypeError('insufficient type annotations')
     """
     pass
 
