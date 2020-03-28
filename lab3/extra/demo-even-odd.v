@@ -1,48 +1,20 @@
-Set Implicit Arguments.
-Import Nat.
+Require Import Nat.
 
+Section EO.
 
   Inductive even : nat -> Prop :=
-    even_0 : even 0
-  | even_SS : forall n, even n -> even (S (S n)).
+  | even_O : even 0
+  | even_S : forall n, odd n -> even (S n)
+  with odd : nat -> Prop :=
+     | odd_S : forall n, even n -> odd (S n).
 
-  Inductive odd : nat -> Prop :=
-    odd_1 : odd 1
-  | odd_SS : forall n, odd n -> odd (S (S n)).
+  Compute is_even 8.
+    
+  Fixpoint is_even n :=
+    match n with
+      0 => True
+    | S 0 => False
+    | S (S k) => is_even k
+    end.
 
-
-  Require Import Wf_nat.
-
-  Check lt_wf_ind.
-  
-  Lemma better_together n : even n \/ odd n.
-  Proof.
-    induction n using lt_wf_ind.
-    destruct n.
-    - left; constructor. (* admit. *)
-    - destruct n.
-      + right; constructor. (* admit. *)
-      + destruct H with (m:=n).
-        * constructor. constructor.
-        * left. constructor. assumption.
-        * right. constructor. assumption.
-          (* == using existentials == *
-      + edestruct H. Focus 2.
-        * left. constructor. eassumption.
-        * repeat constructor.
-        * right. constructor. assumption.
-        *)
-  Qed.
-
-  Lemma better_separate n : ~ (even n /\ odd n).
-  Proof.
-    induction n using lt_wf_ind.
-    destruct n.
-    - intros [_ O]. inversion O.
-    - destruct n.
-      + intros [E _]. inversion E.
-      + intros [E O].
-        apply H with (m:=n).
-        * repeat constructor.
-        * inversion E. inversion O. firstorder.
-  Qed.
+End EO.

@@ -1,10 +1,6 @@
+Set Implicit Arguments.
 Require Import Arith.
-Require Import Omega.
 Import Nat.
-
-
-Load "./hoare".
-
 
 (* From "Formal Reasoning About Programs"
 
@@ -18,113 +14,124 @@ Load "./hoare".
    }
 *)
 
-Definition gt01 n m := if gt_dec n m then 1 else 0.
+Inductive state : Set :=
+  InLoop: nat -> nat -> state      (* n, a *)
+| Exit:   nat -> state.          (* a *)
 
-Notation "[ e1 `*` e2 ]" := (expr_op e1 mul e2).
-Notation "[ e1 `-` e2 ]" := (expr_op e1 sub e2).
-Notation "[ e1 `>` e2 ]" := (expr_op e1 gt01 e2).
+Inductive init n0 : state -> Prop :=
+  start : init n0 (InLoop n0 1).
 
-Notation "$ v" := (expr_var v) (at level 7, format "$ v").
-Notation "# n" := (expr_num n) (at level 7, format "# n").
-
-
-Definition factorial_cmd :=
-  seq (assign a (#1))
-      (while [$n `>` #0]
-             (seq (assign a [$a `*` $n])
-                  (assign n [$n `-` #1]))).
+Inductive step : state -> state -> Prop :=
+  iter : forall n a, 0 < n -> 
+    step (InLoop n a) (InLoop (n - 1) (a * n))
+| stop : forall a, 
+    step (InLoop 0 a) (Exit a).
 
 
+(*
+ * Specification -- program returns `fact n0`
+ *  (where n0 is the input, i.e. initial value of n)
+ *)
+Definition spec n0 s :=
+  match s with
+    Exit a => a = fact n0
+  | _ => True
+  end.
 
-Module MainProof.
+Print fact.  (* `fact` is defined in the Arith library *)
 
-  Definition c := seq (assign a [$a `*` $n])
-                      (assign n [$n `-` #1]).
 
-  (* Loop invariant:  a * n! = n0!  *)
-  Definition linv n0 (s : state) := s a * fact (s n) = fact n0.
+(* General Definition *)
+Section ReflexiveTransitiveClosureDef.
 
-  (* Control the behavior of `simpl` to allow more unfoldings.            *)
-  (*                                                                      *)
-  (* This should allow you to simplify a substitution term,               *)
-  (*   e.g. subst (fun s => s a + 1 = 2) a [$a `-` #1] s                  *)
-  (*        ( in other words, (a + 1 = 2)[a - 1 / a] )                    *)
-  (*     simplifies to                                                    *)
-  (*        s a - 1 + 1 = 2                                               *)
-  Arguments subst P v e /.
-  Arguments set s v / z.
-  Arguments var_eq_dec !v1 !v2.
-  Arguments gt01 n m / : simpl nomatch.
+  Variable D : Set.
+  Variable R : D -> D -> Prop.
 
-  (*                                     *)
-  (*  { linv /\ n > 0 }  c  { linv }     *)
-  (*                                     *)
-  (* or:                                 *)
-  (*                                     *)
-  (*  { a * n! = n0 /\ n > 0 }           *)
-  (*  a := a * n ; n := n - 1            *)
-  (*  { a * n! = n0 }                    *)
-  (*                                     *)
-  Lemma factorial_inv n0 : hoare (fun s => linv n0 s /\ s n > 0)
-                                 c
-                                 (linv n0).
-  Proof.
-    unfold c. unfold linv. eapply hoare_seq.
-    Focus 2. apply hoare_assign.
-    simpl.
-    eapply hoare_weaken_l.
-    Focus 2. apply hoare_assign.
-    simpl.
-    (* now it's just a game of arithmetics *)
+  Inductive tc : D -> D -> Prop :=
+    tc_refl : forall s, tc s s
+  | tc_step : forall s u t, R s u -> tc u t -> tc s t.
+
+End ReflexiveTransitiveClosureDef.
+(* - Notice: from this point on, D and R become *arguments* of tc.
+             D, however, is implicit. *)
+Check tc.
+Print Implicit tc.
+
+
+Theorem spec_holds n0 s0 s :
+  init n0 s0 -> tc step s0 s -> spec n0 s.
+Proof.
+  intros Init Reach.
+  induction Reach.
+  - destruct Init.
+    simpl. trivial.
+  - apply IHReach.
+                      (* stuck. :( *)
+Abort.  (* well, this didn't work. *)
+
+(*
+ * Invariant -- supposed to hold for all reachable states.
+ *)
+Definition inv n0 s :=
+  match s with
+    InLoop n a => a * fact n = fact n0
+  | Exit a => a = fact n0
+  end.
+
+(* Note that this is strictly stronger than spec_holds. *)
+Lemma inv_inv n0 s0 s : 
+    init n0 s0 -> tc step s0 s -> inv n0 s.
+Proof.
+  intros Init Reach.
+  induction Reach.
+  - destruct Init.
+    unfold inv.
     firstorder.
-    destruct (s n).
-    - inversion H0.
-    - simpl.
-      rewrite sub_0_r. rewrite <- mul_assoc. assumption.
-  Qed.
-  
-  Lemma gt0_le x y : gt01 x y = 0 <-> x <= y.  Admitted.
-  Lemma gt1_gt x y : gt01 x y <> 0 <-> x > y.  Admitted.
+  - apply IHReach.
+                   (* stuck again! *)
+Abort. (* how rude. *)
 
-  (*                                                       *)
-  (*  { linv }  while (n > 0) do c  { linv /\ n <= 0 }     *)
-  (*                                                       *)
-  Lemma factorial_inv' n0 : hoare (linv n0)
-                                  (while [$n `>` #0] c)
-                                  (fun s => linv n0 s /\ s n = 0).
-  Proof.
-    eapply hoare_weaken_r.
-    - econstructor. simpl. eapply hoare_weaken_l.
-      + intros. rewrite gt1_gt in H. apply H.
-      + apply factorial_inv.
-    - simpl. intros. firstorder.
-      apply gt0_le in H0. omega.
-  Qed.
+(* Strengthen the proposition even more to make induction work. *)
+Lemma inv_inv' n0 s0 s : 
+    inv n0 s0 -> tc step s0 s -> inv n0 s.
+Proof.
+  intros Inv Reach.
+  induction Reach.
+  - assumption.
+  - apply IHReach.
+    destruct H.
+    + destruct n.
+      * inversion H.     (**) Print Peano.lt.
+      * unfold inv. unfold inv in Inv. 
+        simpl. rewrite sub_0_r.
+        rewrite <- mul_assoc. assumption.
+    + unfold inv. unfold inv in Inv.
+      rewrite <- Inv. firstorder.
+Qed. (* third time's the charm *)
 
-  Lemma final n0 s : linv n0 s -> s n = 0 -> s a = fact n0.
-  Admitted.
+(* Let's try that one again, now it should be easy. *)
+Lemma inv_inv n0 s0 s : init n0 s0 -> tc step s0 s -> inv n0 s.
+Proof.
+  intro Init. apply inv_inv'.
+  destruct Init.
+  unfold inv.
+  firstorder.
+Qed.
 
-  (*                                                 *)
-  (*     { n = n0 }  factorial  { a = n0! }          *)
-  (*                                                 *)
-  Lemma factorial_correct n0 : hoare (fun s => s n = n0)
-                                     factorial_cmd
-                                     (fun s => s a = fact n0).
-  Proof.
-    econstructor.
-    Focus 2.
-    { eapply hoare_weaken_r.
-      - apply factorial_inv'.
-      - simpl. intros. apply final; apply H.
-    }
-    Unfocus.
-    (*  { n = n0 }  a := 1  { a * n! = n0! }  *)
-    eapply hoare_weaken_l.
-    Focus 2. constructor.
-    intros. unfold linv. simpl. rewrite H. omega.
-  Qed.
-
-End MainProof.
+(* And lastly. *)
+Theorem spec_holds n0 s0 s : 
+    init n0 s0 -> tc step s0 s -> spec n0 s.
+Proof.
+  intros.
+  enough (inv n0 s).
+  - destruct s.
+    + simpl. trivial.
+    + simpl. simpl in H1.
+      assumption.
+  - eapply inv_inv with s0.  (* `with` fills missing holes *)
+    + eassumption.
+    + assumption.
+Qed.
 
 
 
