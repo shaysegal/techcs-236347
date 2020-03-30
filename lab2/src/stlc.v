@@ -51,8 +51,6 @@ Check TVar x @ \x : Base int, \y : Base bool, TVar y.
 
 Definition Valuation := Var -> Ty.
 
-Definition env : Valuation := fun v => Base int.
-
 
 Module Typecheck.
 
@@ -65,15 +63,19 @@ Fixpoint typecheck (e : Term) (env : Valuation) :=
   (* TODO *)
 
 
-Compute typecheck (\ x : Base bool, TVar y @ TVar x) env.
+(* Examples *)
+
+Definition env : Valuation := fun v => Base int.
+
+Compute typecheck (\x : Base bool, TVar y @ TVar x) env.
 (* ExpectedArrow (TVar y) (Base int) *)
 
 Compute typecheck
-  (\ x : Arrow (Base bool) (Base int), TVar x @ TVar y) env.
+  (\x : Arrow (Base bool) (Base int), TVar x @ TVar y) env.
 (* Mismatch (TVar y) (Base bool) (Base int) *)
 
 Compute typecheck
-  (\ x : Arrow (Base int) (Base bool), TVar x @ TVar y) env.
+  (\x : Arrow (Base int) (Base bool), TVar x @ TVar y) env.
 (* Ok (Arrow (Arrow (Base int) (Base bool)) (Base bool)) *)
 (* ⟹   (int → bool) → bool  *)
 
