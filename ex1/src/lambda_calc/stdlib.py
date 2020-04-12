@@ -2,9 +2,9 @@ from .syntax import LambdaParser
 
 
 DECLARATIONS = r"""
-    \(succ prev : int -> int) (plus mult pow minus : int -> int -> int)
+    \(succ prev : nat -> nat) (plus mult pow minus : nat -> nat -> nat)
      (True False : bool) (not : bool -> bool) (and or xor : bool -> bool -> bool)
-     (is_zero : int -> bool)
+     (is_zero : nat -> bool)
     . dummy
 """
 
