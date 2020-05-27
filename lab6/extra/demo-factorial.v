@@ -56,6 +56,12 @@ Module MainProof.
   Arguments var_eq_dec !v1 !v2.
   Arguments gt01 n m / : simpl nomatch.
 
+  Section eg.
+    Variable s : state.
+    Goal subst (fun s => s a + 1 = 2) a [$a `-` #1] s.
+      simpl. Abort.
+  End eg.
+
   (*                                     *)
   (*  { linv /\ n > 0 }  c  { linv }     *)
   (*                                     *)
@@ -70,17 +76,17 @@ Module MainProof.
                                  (linv n0).
   Proof.
     unfold c. unfold linv. eapply hoare_seq.
-    Focus 2. apply hoare_assign.
-    simpl.
-    eapply hoare_weaken_l.
-    Focus 2. apply hoare_assign.
-    simpl.
-    (* now it's just a game of arithmetics *)
-    firstorder.
-    destruct (s n).
-    - inversion H0.
-    - simpl.
-      rewrite sub_0_r. rewrite <- mul_assoc. assumption.
+    2: { apply hoare_assign. }
+    1: { simpl. eapply hoare_weaken_l.
+      2: { apply hoare_assign. }
+      1: { simpl.
+        (* now it's just a game of arithmetics *)
+        firstorder. destruct (s n).
+        - inversion H0.
+        - simpl.
+          rewrite sub_0_r. rewrite <- mul_assoc. assumption.
+      }
+    }
   Qed.
   
   Lemma gt0_le x y : gt01 x y = 0 <-> x <= y.  Admitted.
@@ -94,7 +100,8 @@ Module MainProof.
                                   (fun s => linv n0 s /\ s n = 0).
   Proof.
     eapply hoare_weaken_r.
-    - econstructor. simpl. eapply hoare_weaken_l.
+    - econstructor. simpl. (* this *almost* matches `factorial_inv` *)
+      eapply hoare_weaken_l.
       + intros. rewrite gt1_gt in H. apply H.
       + apply factorial_inv.
     - simpl. intros. firstorder.
@@ -112,16 +119,17 @@ Module MainProof.
                                      (fun s => s a = fact n0).
   Proof.
     econstructor.
-    Focus 2.
-    { eapply hoare_weaken_r.
+    2: {
+      eapply hoare_weaken_r.
       - apply factorial_inv'.
       - simpl. intros. apply final; apply H.
     }
-    Unfocus.
-    (*  { n = n0 }  a := 1  { a * n! = n0! }  *)
-    eapply hoare_weaken_l.
-    Focus 2. constructor.
-    intros. unfold linv. simpl. rewrite H. omega.
+    1: {
+      (*  { n = n0 }  a := 1  { a * n! = n0! }  *)
+      eapply hoare_weaken_l.
+      2: { constructor. }
+      1: { intros. unfold linv. simpl. rewrite H. omega. }
+    }
   Qed.
 
 End MainProof.
