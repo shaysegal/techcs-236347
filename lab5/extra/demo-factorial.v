@@ -2,6 +2,8 @@ Set Implicit Arguments.
 Require Import Arith.
 Import Nat.
 
+Require Import Omega.
+
 (* From "Formal Reasoning About Programs"
 
    factorial(n) {
@@ -49,7 +51,7 @@ Section ReflexiveTransitiveClosureDef.
 
   Inductive tc : D -> D -> Prop :=
     tc_refl : forall s, tc s s
-  | tc_step : forall s u t, R s u -> tc u t -> tc s t.
+  | tc_step : forall s u t, tc s u -> R u t -> tc s t.
 
 End ReflexiveTransitiveClosureDef.
 (* - Notice: from this point on, D and R become *arguments* of tc.
@@ -65,8 +67,8 @@ Proof.
   induction Reach.
   - destruct Init.
     simpl. trivial.
-  - apply IHReach.
-                      (* stuck. :( *)
+  - Fail apply IHReach.
+(*🍉*)                (* stuck. :( *)   
 Abort.  (* well, this didn't work. *)
 
 (*
@@ -87,38 +89,17 @@ Proof.
   - destruct Init.
     unfold inv.
     firstorder.
-  - apply IHReach.
-                   (* stuck again! *)
-Abort. (* how rude. *)
-
-(* Strengthen the proposition even more to make induction work. *)
-Lemma inv_inv' n0 s0 s : 
-    inv n0 s0 -> tc step s0 s -> inv n0 s.
-Proof.
-  intros Inv Reach.
-  induction Reach.
-  - assumption.
-  - apply IHReach.
-    destruct H.
+  - destruct H.
     + destruct n.
-      * inversion H.     (**) Print Peano.lt.
-      * unfold inv. unfold inv in Inv. 
+      * inversion H.
+      * unfold inv. unfold inv in IHReach. 
         simpl. rewrite sub_0_r.
-        rewrite <- mul_assoc. assumption.
-    + unfold inv. unfold inv in Inv.
-      rewrite <- Inv. firstorder.
-Qed. (* third time's the charm *)
+        rewrite <- mul_assoc. firstorder. (* apply IHReach. assumption. *)
+    + simpl in *. firstorder. (* apply IHReach in Init. omega. *)
+(*🍇*)
+Qed. (* nice *)
 
-(* Let's try that one again, now it should be easy. *)
-Lemma inv_inv n0 s0 s : init n0 s0 -> tc step s0 s -> inv n0 s.
-Proof.
-  intro Init. apply inv_inv'.
-  destruct Init.
-  unfold inv.
-  firstorder.
-Qed.
-
-(* And lastly. *)
+(* Now we can try the previous one again, it should be easy. *)
 Theorem spec_holds n0 s0 s : 
     init n0 s0 -> tc step s0 s -> spec n0 s.
 Proof.
@@ -132,7 +113,3 @@ Proof.
     + eassumption.
     + assumption.
 Qed.
-
-
-
-

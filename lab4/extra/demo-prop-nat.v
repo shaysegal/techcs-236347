@@ -4,9 +4,9 @@ Section Propositional.
 
   Variables A B C D : Prop.
   
-  Definition modpon1 : (A -> B) -> A -> B := fun x => x.
+  Definition modpon1 : (A -> B) -> A -> B := fun x => x. (*🍎*)
   
-  Definition modpon2 : A -> (A -> B) -> B := fun x f => f x.
+  Definition modpon2 : A -> (A -> B) -> B := fun x f => f x. (*🍏*)
   
   Locate "/\ ".
   Print and.
@@ -15,7 +15,7 @@ Section Propositional.
     conj : A -> B -> A /\ B
   *)
   
-  Definition modpon3 : A /\ (A -> B) -> B := fun xf =>
+  Definition modpon3 : A /\ (A -> B) -> B := fun xf => (*🍐*)
     match xf with 
       conj x f => f x
     end.
@@ -28,13 +28,28 @@ Section Propositional.
   | or_intror : B -> A \/ B
   *)
     
-  Definition and_or : A /\ B -> A \/ B := fun ab =>
+  Definition and_or : A /\ B -> A \/ B := fun ab => (*🍋*)
     match ab with
       conj a b => or_introl a
     end.
     
-  Definition either_or : (C -> C \/ D) /\ (D -> C \/ D) :=  
+  Definition either_or : (C -> C \/ D) /\ (D -> C \/ D) :=  (*🍉*)
     conj (@or_introl C D) (@or_intror C D).
+    
+  Lemma either_or' : (C -> C \/ D) /\ (D -> C \/ D).
+  Proof. (*🍇*)
+    apply conj.
+    - apply or_introl.
+    - apply or_intror.
+  Qed.
+  
+  Lemma either_or'' : (C -> C \/ D) /\ (D -> C \/ D).
+  Proof. (*🍌*)
+    split.
+    - intro. left. assumption.
+    - intro. right. assumption.
+  Qed.
+  
     
 End Propositional.
 
@@ -50,8 +65,32 @@ Section Naturals.
   *)
   Check le.
   
-  Definition nonneg_2 : 0 <= 2 := 
+  Definition nonneg_2 : 0 <= 2 :=
       le_S 0 1 (le_S 0 0 (le_n 0)).
+  
+  Lemma nonneg_2' : 0 <= 2.
+  Proof. (*🍅*)
+    repeat constructor.
+  Qed.
+  
+  (*
+  Inductive le (n : nat) : nat -> Prop :=
+    le_n : n <= n
+  | le_S : forall m : nat, n <= m -> n <= S m
+  *)
+
+  Fixpoint le_0 n : 0 <= n :=  (*🍆*)
+    match n with
+    | 0 => le_n 0
+    | S k => le_S 0 k (le_0 k)
+    end.
+    
+  Lemma le_0' : forall n, 0 <= n.
+  Proof. (*🌽*)
+    induction n.
+    - apply le_n.
+    - apply le_S. apply IHn.
+  Qed.
   
   Locate "exists".
   Print ex.
@@ -59,8 +98,8 @@ Section Naturals.
   Inductive ex (A : Type) (P : A -> Prop) : Prop :=
     ex_intro : forall x : A, P x -> exists y, P y
   *)
-  
-  Definition base : forall n, n = 0 \/ exists k, n = 1 + k :=
+    
+  Definition base : forall n, n = 0 \/ exists k, n = 1 + k :=  (*🍩*)
     fun n => match n with
       0 => or_introl (eq_refl 0)
     | S k => or_intror (ex_intro 
@@ -70,32 +109,13 @@ Section Naturals.
     end.
     
   Lemma base' : forall n, n = 0 \/ exists k, n = 1 + k.
-  Proof.
+  Proof. (*🍭*)
     intro n.
     destruct n.
     - left. apply eq_refl.
     - right. exists n. reflexivity.
   Qed.
-  
-  (*
-  Inductive le (n : nat) : nat -> Prop :=
-    le_n : n <= n
-  | le_S : forall m : nat, n <= m -> n <= S m
-  *)
-
-  Fixpoint le_0 n : 0 <= n :=
-    match n with
-    | 0 => le_n 0
-    | S k => le_S 0 k (le_0 k)
-    end.
     
-  Lemma le_0' : forall n, 0 <= n.
-  Proof.
-    induction n.
-    - apply le_n.
-    - apply le_S. apply IHn.
-  Qed.
-  
   Locate "+".
   Print Nat.add.
   (*
@@ -108,16 +128,16 @@ Section Naturals.
   
   Variable n : nat.
   
-  Eval cbn in 1 + n.
-  Eval cbn in n + 1.
+  Eval cbn in 0 + n.
+  Eval cbn in n + 0.
   
-  Lemma plus_1_n : 1 + n = S n.
-  Proof.
+  Lemma plus_0_n : 0 + n = n.
+  Proof. (*☕️*)
     reflexivity.
   Qed.
   
-  Lemma plus_n_1 : n + 1 = S n.
-  Proof.
+  Lemma plus_n_0 : n + 0 = n.
+  Proof. (*🍺*)
     induction n.
     - simpl. reflexivity.
     - simpl. rewrite IHn0. reflexivity.
@@ -152,12 +172,4 @@ Proof.
   (* reflexivity does not work *)
   rewrite add_1_r. reflexivity.
 Qed.
-
-
-
-
-
-
-
-
 
