@@ -10,7 +10,7 @@ sketch: scanner.sk
 
 
 compile: scanner.h scanner.cpp
-	g++ -o scanner scanner.cpp main.cpp -I $(SKETCH_HOME)/sketch-frontend/runtime/include
+	g++ -o scanner scanner.cpp main.cpp -I /usr/include/sketch -I $(SKETCH_HOME)/sketch-frontend/runtime/include
 
 run:
 	./scanner
