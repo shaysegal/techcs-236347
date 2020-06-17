@@ -6,6 +6,7 @@ bit match([int n], char[n] s) {
 
 harness void program() {
     // allow a*b*c*
-    assert match("") == 1;
+    assert match({}) == 1;
+    assert match({'a'}) == 1;
     /* ETC. */
 }
