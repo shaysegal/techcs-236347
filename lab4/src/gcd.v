@@ -1,3 +1,5 @@
+Set Implicit Arguments.
+
 Require Import Arith.Arith.
 Import Nat.
 
@@ -57,8 +59,8 @@ Section Gcd.
   Check Nat.mul_add_distr_l.
   Check Nat.mul_sub_distr_l.
 
-  Search add mul.       (* this is how you could find them yourself *)
-  Search sub mul.       (* if I hadn't told you *)
+  Search (_ * (_ + _)).       (* this is how you could find them yourself *)
+  Search (_ * (_ - _)).       (* if I hadn't told you *)
 
   Lemma gcd_step_aux : forall a b z, is_gcd a b z -> is_gcd (a + b) b z.
  
