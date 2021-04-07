@@ -1,5 +1,5 @@
-from lib.adt.tree import Tree
-from lib.adt.tree.transform import TreeTransform
+from adt.tree import Tree
+from adt.tree.transform import TreeTransform
 
 
 class TreeSubstitutionBase(TreeTransform):
@@ -118,8 +118,8 @@ TreePatternSubstitution.AugmentSubstitution.TreePatternSubstitution = TreePatter
 
 # Snippet
 if __name__ == '__main__':
-    from lib.adt.tree.build import TreeAssistant as TA
-    from lib.adt.tree.search.pattern import TreeTopPattern
+    from adt.tree.build import TreeAssistant as TA
+    from adt.tree.search.pattern import TreeTopPattern
 
     tree = TA.build(('v', ['x', 'y', 'z']))
     tsub = TreeSubstitution({TA.build('x'): [TA.build(x) for x in 'abc']})

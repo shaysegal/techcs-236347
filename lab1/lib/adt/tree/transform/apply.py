@@ -1,4 +1,4 @@
-from lib.adt.tree.walk import PreorderWalk
+from adt.tree.walk import PreorderWalk
 
 
 class ApplyTo(object):

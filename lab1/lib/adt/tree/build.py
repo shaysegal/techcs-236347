@@ -1,4 +1,4 @@
-from lib.adt.tree import Tree
+from adt.tree import Tree
 
 
 
