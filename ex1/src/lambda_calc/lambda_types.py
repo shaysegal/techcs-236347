@@ -14,8 +14,8 @@ def type_inference(expr: Tree) -> (Tree, Tree):
     """
     Input: an expression.
     Output (tuple):
-     * An annotated expression where every bound variable has a 
-       type annotation. (type Tree)
+     * The input expression annotated where every bound variable has a 
+       type annotation, and a tree representing the type of the whole expression. (type Tree)
      * If encountered a unification error, raise TypeError('type mismatch')
      * If some types cannot be inferred, raise TypeError('insufficient type annotations')
     """
