@@ -54,10 +54,10 @@ Section ReflexiveTransitiveClosureDef.
 
   Inductive tc : D -> D -> Prop :=
     tc_refl : forall s, tc s s
-  | tc_step : forall s u t, R s u -> tc u t -> tc s t.
+  | tc_step : forall s u t, tc s u -> R u t -> tc s t.
 
 End ReflexiveTransitiveClosureDef.
-                                              
+
 
 Lemma inv_tc s1 s2 : inv s1 -> tc step s1 s2 -> inv s2.
 
@@ -68,3 +68,24 @@ Theorem mccarthy91 n n' : n <= 101 ->
 (*
  * Bonus: prove that n' >= 91 as well.
  *)
+
+
+(*
+ * Extra bonus: do the same proof with the other variant of tc.
+ * Which one is easier?
+ *)
+Section ReflexiveTransitiveClosureAltDef.
+
+  Variable D : Set.
+  Variable R : D -> D -> Prop.
+
+  Inductive tc' : D -> D -> Prop :=
+    tc'_refl : forall s, tc' s s
+  | tc'_step : forall s u t, R s u -> tc' u t -> tc' s t.
+
+End ReflexiveTransitiveClosureAltDef.
+
+
+Theorem mccarthy'91 n n' : n <= 101 ->
+                           tc' step (n, 1) (n', 0) ->
+                           n' <= 91.

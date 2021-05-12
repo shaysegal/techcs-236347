@@ -10,4 +10,6 @@ def M(n):
     
 if __name__ == '__main__':
     n = 99
-    print("!-", M(n), "-!", sep="")
+    print()
+    print("!~", M(n), "~!", sep="")
+    print()
