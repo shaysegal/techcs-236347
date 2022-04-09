@@ -1,6 +1,6 @@
 
 import re
-from collections import Iterable
+from collections.abc import Iterable
 
 from adt.tree import Tree
 from collections import OrderedDict
