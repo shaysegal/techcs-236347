@@ -1,5 +1,5 @@
 Require Import Arith.
-Require Import Omega.  
+Require Import Lia.
 Import Nat.
 
 

@@ -2,7 +2,7 @@ Set Implicit Arguments.
 Require Import Arith.
 Import Nat.
 
-Require Import Omega.
+Require Import Lia.
 
 (* From "Formal Reasoning About Programs"
 
@@ -87,15 +87,14 @@ Proof.
   intros Init Reach.
   induction Reach.
   - destruct Init.
-    unfold inv.
-    firstorder.
+    unfold inv. lia.
   - destruct H.
     + destruct n.
       * inversion H.
       * unfold inv. unfold inv in IHReach. 
         simpl. rewrite sub_0_r.
         rewrite <- mul_assoc. firstorder. (* apply IHReach. assumption. *)
-    + simpl in *. firstorder. (* apply IHReach in Init. omega. *)
+    + simpl in *. firstorder. lia. (* apply IHReach in Init. omega. *)
 (*🍇*)
 Qed. (* nice *)
 
@@ -109,7 +108,8 @@ Proof.
     + simpl. trivial.
     + simpl. simpl in H1.
       assumption.
-  - eapply inv_inv with s0.  (* `with` fills missing holes *)
+  - apply inv_inv with s0.  (* `with` fills missing holes *)
+    (* try also: `eapply inv_inv` instead *)
     + eassumption.
     + assumption.
 Qed.
