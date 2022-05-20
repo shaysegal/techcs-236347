@@ -3,7 +3,7 @@ Require Import Lia.
 Import Nat.
 
 
-Load "./hoare".
+Load "/lib/hoare".
 
 
 (*
@@ -61,7 +61,7 @@ Lemma warm_up a0 b0 : hoare (fun s => s a = a0 /\ s b = b0)
                             (assign a [$a `-` $b])
                             (fun s => s a = a0 - b0).
   (* Hint 1: use hoare_weaken_l (from hoare.v).
-   * Hint 2: you can switch subgoals with Focus <num>. 
+   * Hint 2: you can switch subgoals with <num>: { ... }. 
    *)
 
 

@@ -43,4 +43,4 @@ Definition euclid_body :=
     seq (assume (expr_op $a ne01 $b))
         (if_then_else (expr_op $a gt01 $b)
                       (assign a (expr_op $a sub $b))
-                      (assign a (expr_op $b sub $a))).
+                      (assign b (expr_op $b sub $a))).
