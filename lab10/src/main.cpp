@@ -14,7 +14,7 @@ Node * list_from_args(int argc, char *argv[]) {
         vals[i] = atoi(argv[i]);
 
     Node *h;
-    listops::mklist(argc-1, vals, h);
+    listops::mklist(argc, vals, h);
 
     return h;
 }
