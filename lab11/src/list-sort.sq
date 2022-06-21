@@ -1,4 +1,6 @@
-qualifier {x <= y, x != y}
+leq :: x:a -> y:a -> {Bool | _v == (x <= y)}
+
+-- Good ol' list
 
 data List a where
   Nil :: List a
@@ -11,6 +13,8 @@ termination measure len :: List a -> {Int | _v >= 0} where
 measure elems :: List a -> Set a where
   Nil -> []
   Cons x xs -> [x] + elems xs
+
+-- Sorted list
 
 data SList a where
   SNil :: SList a
