@@ -268,7 +268,7 @@ def verify(P, ast, Q, linv=None):
     #P,Q
     pvars = ['a','b','sum']#set(filter(lambda t: type(t) == str and t!='skip' ,ast.terminals))
     env = mk_env(pvars)
-    ret = sketch_verify(P, ast, Q, env.copy(),linv,env.copy())
+    ret = inner_verify(P, ast, Q, env.copy(),linv,env.copy())
     sol = Solver()
     formula = Implies(P(env),ret)
     sol.add(Not(formula))
@@ -301,14 +301,14 @@ if __name__ == '__main__':
     linv = lambda d: d['y'] >= 0
     pvars = ['a', 'b', 'sum']
     examples =[]
-    example = {}
-    example['P'] = lambda d: d['a'] ==3 and d['b'] == 5  and d['sum'] == 0
-    example['Q'] = lambda d: d['a'] ==3 and d['b'] == 5  and d['sum'] == 8
-    examples.append(example)
     example1 = {}
-    example1['P'] = lambda d: d['a'] ==1 and d['b'] == 2  and d['sum'] == 0
-    example1['Q'] = lambda d: d['a'] ==1 and d['b'] == 2  and d['sum'] == 3
+    example1['P'] = lambda d: d['a'] == 3 and d['b'] == 4 and d['sum'] == 0
+    example1['Q'] = lambda d: d['a'] == 3 and d['b'] == 4 and d['sum'] == 12
     examples.append(example1)
+    example2 = {}
+    example2['P'] = lambda d: d['a'] == 5 and d['b'] == 2 and d['sum'] == 0
+    example2['Q'] = lambda d: d['a'] == 5 and d['b'] == 2 and d['sum'] == 10
+    examples.append(example2)
     # find god_program
     first_example = True
     god_program = None
