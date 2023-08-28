@@ -1,16 +1,16 @@
 import sys
 from pathlib import Path
 import math
-
+import ast
 path_root = Path(__file__).parents[2]
 sys.path.append(str(path_root)+'/lib')
 sys.path.append(str(path_root)+'/src')
-from lib.adt.tree.walk import PreorderWalk
+from adt.tree.walk import PreorderWalk
 from while_lang.syntax import WhileParser
 import operator
 import re
 import inspect
-from top_down import generate_programs_by_depth
+from top_down import generate_programs_by_depth,ast_to_z3
 from z3 import Int, ForAll, Implies, Not, And, Or, Solver, unsat, sat,parse_smt2_string
 old_prog = None
 
@@ -104,22 +104,33 @@ def check_current_values_againt_program(prog,Q_values,post_id):
         print(f"Error: {e}")
         return False
 
-def send_to_synt(old_prog,values,post_id):
+def send_to_synt(values_array,post_id):
     global grammar_rules,terminals
-    expected_value = values[post_id]
-    prog_values  = values.copy()
+    
+    expected_value = values_array[0][post_id]
+    prog_values  = values_array[0].copy()
     del prog_values[post_id]
-    grammar_rules['E0'] = list(values.keys()) + grammar_rules['E0']
-    terminals.update(values.keys())
+    grammar_rules['E0'] = list(values_array[0].keys()) + grammar_rules['E0']
+    terminals.update(prog_values.keys())
     for program in generate_programs_by_depth("E", 5,grammar_rules,terminals):
         sol = Solver()
-        formula = operator.eq(program,expected_value)
-        sol.add(Not(formula))
+        for example_number,values in enumerate(values_array):
+            expected_value = values[post_id]
+            z3_lut={}
+            for k in values.keys():
+                z3_lut[k]=Int(k+str(example_number))
+            z3_prog = ast_to_z3(ast.parse(program,mode='eval'),z3_lut)
+            formula = operator.eq(z3_prog,expected_value)
+            sol.add(formula)
+            for key,val in values.items():
+                sol.add(val == z3_lut[key])
+
         status = sol.check()
         if status == sat:
             m = sol.model()
-            return False , m
-        return True ,None 
+            for num in list(filter(lambda v: v.startswith("num"),map(lambda v: str(v),m.decls()))):
+                program = program.replace(num,str(m[Int(num)]))
+            return program
     # if(prog == None):
     #     raise Exception("No program found")
     # return prog
@@ -203,14 +214,6 @@ def sketch_verify(P, ast, Q, env ,linv,global_env):
                 post_id = ast.subtrees[0].subtrees[0].root
                 Q_values = extract_values_from_Q(Q,env)
                 return post_id, Q_values
-                old_fits = False
-                if old_prog != None:
-                    old_fits = check_current_values_againt_program(old_prog,Q_values,post_id)
-                if old_fits:
-                    return old_prog
-                prog = send_to_synt(Q_values,post_id)
-                old_prog = prog
-                return prog
             #    P,Q
             #    P-> values of variable.
             #    sketch -> function that i create 
@@ -276,6 +279,22 @@ def verify(P, ast, Q, linv=None):
     return True ,None 
 
     # ...
+def check_aginst_current_program(god_program,values,post_id):
+    expected_value = values[post_id]
+    sol = Solver()
+    z3_lut={}
+    for k in values.keys():
+        z3_lut[k]=Int(k)
+    z3_prog = ast_to_z3(ast.parse(god_program,mode='eval'),z3_lut)
+    formula = operator.eq(z3_prog,expected_value)
+    sol.add(formula)
+    for key,val in values.items():
+        sol.add(val == z3_lut[key])
+
+    status = sol.check()
+    return status == sat
+        
+
 
 if __name__ == '__main__':
     program =  "sum := ??"
@@ -286,24 +305,35 @@ if __name__ == '__main__':
     example['P'] = lambda d: d['a'] ==3 and d['b'] == 5  and d['sum'] == 0
     example['Q'] = lambda d: d['a'] ==3 and d['b'] == 5  and d['sum'] == 8
     examples.append(example)
+    example1 = {}
+    example1['P'] = lambda d: d['a'] ==1 and d['b'] == 2  and d['sum'] == 0
+    example1['Q'] = lambda d: d['a'] ==1 and d['b'] == 2  and d['sum'] == 3
+    examples.append(example1)
     # find god_program
     first_example = True
-    for example in examples:
-        god_program = program
-        program = example['program']
+    god_program = None
+    Q_values_store=[]
+    for idx,example in enumerate(examples):
         P = example['P']
         Q = example['Q']
-        ast = WhileParser()(program)
-        if ast:
-            if first_example:
-                first_example = False
-                post_id, Q_values = sketch_verify(P, ast, Q, linv=linv)
-            god_program = send_to_synt(god_program,Q_values,post_id)             
+        ast_prog = WhileParser()(program)
+        env = mk_env(pvars)
+        if ast_prog:
+            post_id, Q_values = sketch_verify(P, ast_prog, Q, env,linv=linv,global_env=env)
+            Q_values_store.append(Q_values)
+            if god_program :
+                if not check_aginst_current_program(god_program,Q_values,post_id):
+                    god_program = send_to_synt(Q_values_store,post_id)
+            else:
+                #first check if current god_prog is 
+                god_program = send_to_synt(Q_values_store,post_id)
+            
+
         else:
             print(">> Invalid program.")
 
-    program.replace("??",god_program)
-    ast = WhileParser()(program)
+    program = program.replace("??",god_program)
+    ast_program = WhileParser()(program)
     # final verify
-    verify(P, ast, Q, linv=linv)
+    verify(P, ast_program, Q, linv=linv)
 

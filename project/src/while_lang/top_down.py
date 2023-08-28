@@ -8,8 +8,40 @@ E0  ->   id   |   num   |   sketch
 E0  ->   ( E )
 OP ->   +   |   -   |   *   |   /   
 """
+
+
+import ast
+from z3 import *
+
+# Define a dictionary to map AST operators to Z3 operators
+operators = {
+    ast.Add: lambda x, y: x + y,
+    ast.Sub: lambda x, y: x - y,
+    ast.Mult: lambda x, y: x * y,
+    ast.Div: lambda x, y: x / y
+}
+
+# Define a recursive function to convert the AST to a Z3 formula
+def ast_to_z3(node, variables):
+    if isinstance(node, ast.Name):
+        if node.id in variables:
+            return variables[node.id]
+        #its a num 
+        return Int(node.id)
+    elif isinstance(node,ast.Constant):
+        return IntVal(node.value)
+    elif isinstance(node, ast.BinOp):
+        left = ast_to_z3(node.left, variables)
+        right = ast_to_z3(node.right, variables)
+        operator_func = operators[type(node.op)]
+        return operator_func(left, right)
+    elif isinstance(node,ast.Expression):
+        return ast_to_z3(node.body,variables)
+
 count = 0 
 # Define some example terminals and non-terminals
+
+
 
 # Define a function to generate programs by depth of search
 def generate_programs_by_depth(start_symbol, max_depth,grammar_rules,terminals,current_depth=0):
