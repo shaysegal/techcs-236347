@@ -104,7 +104,7 @@ def check_current_values_againt_program(prog,Q_values,post_id):
         print(f"Error: {e}")
         return False
 
-def send_to_synt(values,post_id):
+def send_to_synt(old_prog,values,post_id):
     global grammar_rules,terminals
     expected_value = values[post_id]
     prog_values  = values.copy()
@@ -112,10 +112,14 @@ def send_to_synt(values,post_id):
     grammar_rules['E0'] = list(values.keys()) + grammar_rules['E0']
     terminals.update(values.keys())
     for program in generate_programs_by_depth("E", 5,grammar_rules,terminals):
-        # return program
-        is_prog_fit = check_current_values_againt_program(program,values,post_id)
-        if(is_prog_fit):
-            return program
+        sol = Solver()
+        formula = operator.eq(program,expected_value)
+        sol.add(Not(formula))
+        status = sol.check()
+        if status == sat:
+            m = sol.model()
+            return False , m
+        return True ,None 
     # if(prog == None):
     #     raise Exception("No program found")
     # return prog
@@ -183,6 +187,72 @@ def inner_verify(P, ast, Q, env ,linv,global_env):
         case "skip":    
             return Q(env)
     return 
+
+def sketch_verify(P, ast, Q, env ,linv,global_env):
+    global old_prog
+    match ast.root :
+        case ";":
+            #seq 
+            #M=None
+            #inner_lambda = inner_verify(P,ast.subtrees[1],Q,env,linv)
+            wp_c2=lambda new_env : inner_verify(P,ast.subtrees[1],Q,new_env.copy(),linv,global_env)
+            return inner_verify(P,ast.subtrees[0],wp_c2,env,linv,global_env)
+        case ":=":
+            #assign
+            if ast.subtrees[1].root == "sketch":
+                post_id = ast.subtrees[0].subtrees[0].root
+                Q_values = extract_values_from_Q(Q,env)
+                return post_id, Q_values
+                old_fits = False
+                if old_prog != None:
+                    old_fits = check_current_values_againt_program(old_prog,Q_values,post_id)
+                if old_fits:
+                    return old_prog
+                prog = send_to_synt(Q_values,post_id)
+                old_prog = prog
+                return prog
+            #    P,Q
+            #    P-> values of variable.
+            #    sketch -> function that i create 
+            #    for P,Q in [Ps,Qs]
+            #    And( P Implies sketch(p)=Q)
+            #    prog = send_to_synt(Ps,Qs)
+            #    return prog
+            v,expr = ast.subtrees
+            e_at_x = upd(env,str(transform_cond(v,OP,env)),transform_cond(expr,OP,env))
+            return Q(e_at_x)
+            #something with z3
+        case "while":
+
+            P = linv
+            b , c = ast.subtrees
+            b = transform_cond(b,OP, global_env)
+
+            return And(P(env),
+                       ForAll(list(global_env.values()),                  
+                              And(
+                                Implies(
+                                    And(P(global_env),b),
+                                        inner_verify(P,c,linv,global_env.copy(),linv,global_env)),
+                                Implies(
+                                    And(P(global_env),Not(b)),
+                                        Q(global_env))
+                                  )
+                                )
+                        )
+
+
+        case "if":    
+
+            b ,c_1,c_2 = ast.subtrees
+            b = transform_cond(b,OP, env)
+            return Or(And(b,inner_verify(P,c_1,Q,env,linv,global_env)),And(Not(b),inner_verify(P,c_2,Q,env,linv,global_env)))
+        case "skip":    
+            return Q(env)
+    return 
+
+
+
 def verify(P, ast, Q, linv=None):
     """
     Verifies a Hoare triple {P} c {Q}
@@ -195,7 +265,7 @@ def verify(P, ast, Q, linv=None):
     #P,Q
     pvars = ['a','b','sum']#set(filter(lambda t: type(t) == str and t!='skip' ,ast.terminals))
     env = mk_env(pvars)
-    ret = inner_verify(P, ast, Q, env.copy(),linv,env.copy())
+    ret = sketch_verify(P, ast, Q, env.copy(),linv,env.copy())
     sol = Solver()
     formula = Implies(P(env),ret)
     sol.add(Not(formula))
@@ -206,49 +276,33 @@ def verify(P, ast, Q, linv=None):
     return True ,None 
 
     # ...
+
 if __name__ == '__main__':
-    # example program
-    #pvars = ['a', 'b', 'i', 'n']
-    #program = "a := b ; while i < n do ( a := a + 1 ; b := b + 1 )"
-    #P = lambda _: True
-    #Q = lambda env: env['a'] == env['b']
-    #linv = lambda d: d['a'] == d['b']
-
-    #
-    # Following are other programs that you might want to try
-    #
-
-    ## Program 1
-    # pvars = ['x', 'i', 'y']
-    # program = "y := 0 ; while y < i do ( x := x + y ; if (x * y) < 10 then y := y + 1 else skip )"
-    # P = lambda d: d['x'] > 0
-    # Q = lambda d: d['x'] > 0
-    # linv = lambda d: d['y'] >= 0
-
-
-
-    ##program scratch
+    program =  "sum := ??"
     linv = lambda d: d['y'] >= 0
     pvars = ['a', 'b', 'sum']
-    program = """
-    sum := ??
-    """
-    P = lambda d: d['a'] ==3 and d['b'] == 5  and d['sum'] == 0
-    Q = lambda d: d['a'] ==3 and d['b'] == 5  and d['sum'] == 8
+    examples =[]
+    example = {}
+    example['P'] = lambda d: d['a'] ==3 and d['b'] == 5  and d['sum'] == 0
+    example['Q'] = lambda d: d['a'] ==3 and d['b'] == 5  and d['sum'] == 8
+    examples.append(example)
 
-    ## Program 2
-    #pvars = ['a', 'b']
-    #program = "while a != b do if a > b then a := a - b else b := b - a"
-    #P = lambda d: And(d['a'] > 0, d['b'] > 0)
-    #Q = lambda d: And(d['a'] > 0, d['a'] == d['b'])
-    #linv = lambda d: ??
-
+    first_example = True
+    for example in examples:
+        god_program = program
+        program = example['program']
+        P = example['P']
+        Q = example['Q']
+        ast = WhileParser()(program)
+        if ast:
+            if first_example:
+                first_example = False
+                post_id, Q_values = sketch_verify(P, ast, Q, linv=linv)
+            god_program = send_to_synt(god_program,Q_values,post_id)             
+            verify(P, ast, Q, linv=linv)
+        else:
+            print(">> Invalid program.")
+    program.replace("??",god_program)
     ast = WhileParser()(program)
-
-    if ast:
-        print(">> Valid program.")
-        # Your task is to implement "verify"
-        verify(P, ast, Q, linv=linv)
-    else:
-        print(">> Invalid program.")
+    verify(P, ast, Q, linv=linv)
 
