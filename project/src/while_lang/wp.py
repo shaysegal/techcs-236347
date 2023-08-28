@@ -286,7 +286,7 @@ if __name__ == '__main__':
     example['P'] = lambda d: d['a'] ==3 and d['b'] == 5  and d['sum'] == 0
     example['Q'] = lambda d: d['a'] ==3 and d['b'] == 5  and d['sum'] == 8
     examples.append(example)
-
+    # find god_program
     first_example = True
     for example in examples:
         god_program = program
@@ -299,10 +299,11 @@ if __name__ == '__main__':
                 first_example = False
                 post_id, Q_values = sketch_verify(P, ast, Q, linv=linv)
             god_program = send_to_synt(god_program,Q_values,post_id)             
-            verify(P, ast, Q, linv=linv)
         else:
             print(">> Invalid program.")
+
     program.replace("??",god_program)
     ast = WhileParser()(program)
+    # final verify
     verify(P, ast, Q, linv=linv)
 
