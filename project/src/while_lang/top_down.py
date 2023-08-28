@@ -8,15 +8,19 @@ E0  ->   id   |   num   |   sketch
 E0  ->   ( E )
 OP ->   +   |   -   |   *   |   /   
 """
-
+count = 0 
 # Define some example terminals and non-terminals
 
 # Define a function to generate programs by depth of search
 def generate_programs_by_depth(start_symbol, max_depth,grammar_rules,terminals,current_depth=0):
+    global count
     if current_depth > max_depth:
         return
 
     if start_symbol in terminals:
+        if start_symbol == "num":
+            count+=1
+            yield start_symbol+str(count)
         yield start_symbol
     else:
         for rule in grammar_rules.get(start_symbol, []):

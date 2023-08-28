@@ -11,7 +11,7 @@ import operator
 import re
 import inspect
 from top_down import generate_programs_by_depth
-from z3 import Int, ForAll, Implies, Not, And, Or, Solver, unsat, sat
+from z3 import Int, ForAll, Implies, Not, And, Or, Solver, unsat, sat,parse_smt2_string
 old_prog = None
 
 OP = {'+': operator.add, '-': operator.sub,
@@ -19,7 +19,7 @@ OP = {'+': operator.add, '-': operator.sub,
       '!=': operator.ne, '>': operator.gt, '<': operator.lt,
       '<=': operator.le, '>=': operator.ge, '=': operator.eq}
 
-terminals = set(["skip", "num", "+","-","*","/", "sketch", "if", "then", "else", "while", "do", ";",":=", "(", ")"])
+terminals = set(["skip", "num", "+", "-", "*", "/", "sketch", "if", "then", "else", "while", "do", ";",":=", "(", ")"])
 non_terminals = set(["S", "S1", "E", "E0"])
 grammar_rules = {
     "S": ["S1", "S1 ; S"],
@@ -113,6 +113,7 @@ def send_to_synt(values,post_id):
     terminals.update(values.keys())
     for program in generate_programs_by_depth("E", 5,grammar_rules,terminals):
         # return program
+        parse_smt2_string
         is_prog_fit = check_current_values_againt_program(program,values,post_id)
         if(is_prog_fit):
             return program
@@ -141,9 +142,9 @@ def inner_verify(P, ast, Q, env ,linv,global_env):
                     old_fits = check_current_values_againt_program(old_prog,Q_values,post_id)
                 if old_fits:
                     return old_prog
-                prog = send_to_synt(Q_values,post_id)
-                old_prog = prog
-                return prog
+                working_prog = send_to_synt(Q_values,post_id)
+                old_prog = working_prog
+                return working_prog
             #    P,Q
             #    P-> values of variable.
             #    sketch -> function that i create 
