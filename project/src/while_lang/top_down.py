@@ -12,7 +12,7 @@ OP ->   +   |   -   |   *   |   /
 
 import ast
 from z3 import *
-
+from itertools import product
 # Define a dictionary to map AST operators to Z3 operators
 operators = {
     ast.Add: lambda x, y: x + y,
@@ -27,9 +27,17 @@ def ast_to_z3(node, variables):
         if node.id in variables:
             return variables[node.id]
         #its a num 
-        return Int(node.id)
+        if "num" in node.id :
+            return Int(node.id)
+        elif "string" in node.id:
+            return String(node.id)
+        raise ValueError()
     elif isinstance(node,ast.Constant):
-        return IntVal(node.value)
+        if type(node.value) == int:
+            return IntVal(node.value)
+        if type(node.value) == str:
+            return StringVal(node.value)
+        raise ValueError
     elif isinstance(node, ast.BinOp):
         left = ast_to_z3(node.left, variables)
         right = ast_to_z3(node.right, variables)
@@ -37,6 +45,7 @@ def ast_to_z3(node, variables):
         return operator_func(left, right)
     elif isinstance(node,ast.Expression):
         return ast_to_z3(node.body,variables)
+    #TODO: add section of "Calls" for string operations
 
 count = 0 
 # Define some example terminals and non-terminals
@@ -50,15 +59,18 @@ def generate_programs_by_depth(start_symbol, max_depth,grammar_rules,terminals,c
         return
 
     if start_symbol in terminals:
-        if start_symbol == "num":
+        if start_symbol == "num" or  start_symbol == "string_element":
             count+=1
             yield start_symbol+str(count)
-        yield start_symbol
+        else:
+            yield start_symbol
     else:
         for rule in grammar_rules.get(start_symbol, []):
             tokens = rule.split()
-            for expansion in generate_expansions_by_depth(tokens,max_depth, grammar_rules, terminals, current_depth):
+            for expansion in product(*[generate_programs_by_depth(token,  max_depth,grammar_rules,terminals, current_depth + 1) for token in tokens]):
+            #for expansion in generate_expansions_by_depth(tokens,max_depth, grammar_rules, terminals, current_depth):
                 yield " ".join(expansion)
+            print("debug")
 
 def generate_expansions_by_depth(tokens,max_depth, grammar_rules, terminals, current_depth):
     if not tokens:
@@ -66,9 +78,11 @@ def generate_expansions_by_depth(tokens,max_depth, grammar_rules, terminals, cur
     else:
         first_token = tokens[0]
         rest_tokens = tokens[1:]
+        #for expansion in product(*[generate_programs_by_depth(token,  max_depth,grammar_rules,terminals, current_depth + 1) for token in tokens]):
         for expansion in generate_programs_by_depth(first_token,  max_depth,grammar_rules,terminals, current_depth + 1):
             for rest_expansion in generate_expansions_by_depth(rest_tokens,max_depth, grammar_rules,terminals , current_depth):
                 yield [expansion] + rest_expansion
+            #yield expansion
 
 # Set the maximum depth you want to generate programs for
 max_depth = 4
