@@ -145,12 +145,12 @@ def send_to_synt_assert(assert_cond,post_id,templete_prog,env):
         except Exception as e:
             # print("z3 Error")
             continue
-        formula = Not(z3_prog)
-        if free_vars:
-            formula = z3.Exists(free_vars, formula)
+        formula = z3.ForAll(list(z3_lut.values()),z3_prog)
+        #if free_vars:
+        #    formula = z3.Exists(free_vars, formula)
         sol.add(formula)
         status = sol.check()
-        if status != sat:
+        if status == sat:
             m = sol.model()
             for num in list(filter(lambda v: v.startswith("num"),map(lambda v: str(v),m.decls()))):
                 program = program.replace(num,str(m[Int(num)]))
@@ -396,7 +396,10 @@ if __name__ == '__main__':
             assert_cond = get_assert_cond(program)
             post_id,templete_prog = get_sketch_program(ast_prog)
             god_program = send_to_synt_assert(assert_cond,post_id,templete_prog,env)
-
+            # TODO: check if pattern_to_remove is good for any case
+            pattern_to_remove = r"assert \w+ = \w+ [+\-*/] \w+"
+            program = re.sub(pattern_to_remove, "", program)
+            # if program.endswith('; '): program = program.rstrip()
     else:
         first_example = True
         god_program = None
@@ -420,12 +423,12 @@ if __name__ == '__main__':
             else:
                 print(">> Invalid program.")
 
-        program = program.replace("??",god_program)
-        ast_program = WhileParser()(program)
-        print(f"The program is {program}")
-        print(">> Verifying the following program:")
-        #TODO: need to handle And of Z3 in examples
-        P = lambda d: And(d['t'] == 0,d['x'] == 3)
-        Q = lambda d: And(d['t'] == 9,d['x'] == 3)
-        verify(P, ast_program, Q,pvars, linv=linv)
+    program = program.replace("??",god_program)
+    ast_program = WhileParser()(program)
+    print(f"The program is {program}")
+    print(">> Verifying the following program:")
+    #TODO: need to handle And of Z3 in examples
+    P = lambda d: And(d['t'] == 0,d['x'] == 2)
+    Q = lambda d: And(d['t'] == 4,d['x'] == 2)
+    verify(P, ast_program, Q,pvars, linv=linv)
 
