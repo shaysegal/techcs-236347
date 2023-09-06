@@ -399,7 +399,6 @@ if __name__ == '__main__':
             # TODO: check if pattern_to_remove is good for any case
             pattern_to_remove = r"assert \w+ = \w+ [+\-*/] \w+"
             program = re.sub(pattern_to_remove, "", program)
-            # if program.endswith('; '): program = program.rstrip()
     else:
         first_example = True
         god_program = None
@@ -422,7 +421,8 @@ if __name__ == '__main__':
                 
             else:
                 print(">> Invalid program.")
-
+                
+    if program.endswith('; '): program = program.replace('; ', '')
     program = program.replace("??",god_program)
     ast_program = WhileParser()(program)
     print(f"The program is {program}")
