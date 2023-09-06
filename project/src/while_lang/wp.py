@@ -316,52 +316,52 @@ def check_aginst_current_program(god_program,values,post_id,env):
 
 
 if __name__ == '__main__':
-    program =  """t := x * ??;
-                assert(t == x + x)"""
+    mode = 'Assert'
+    program =  "t := x * ?? ; assert t == x + x"
     linv = lambda d: d['x'] >= 0
     pvars = ['t', 'x']
     var_types={
         't':Int,
         'x':Int
     }
-    examples =[]
-    example1 = {}
-    example1['P'] = lambda d: d['t'] == 0 and d['x'] == 2
-    example1['Q'] = lambda d: d['t'] == 6 and d['x'] == 2
-    examples.append(example1)
-    example2 = {}
-    example2['P'] = lambda d: d['t'] == 0 and d['x'] == 3
-    example2['Q'] = lambda d: d['t'] == 9 and d['x'] == 3
-    examples.append(example2) 
-    first_example = True
-    god_program = None
-    Q_values_store=[]
-    for idx,example in enumerate(examples):
-        P = example['P']
-        Q = example['Q']
+    P = lambda d: And(d['t'] == 0,d['x'] == 2)
+    Q = lambda d: And(d['t'] == 4,d['x'] == 2)
+    if mode == 'Assert':
         ast_prog = WhileParser()(program)
         env = mk_env(pvars)
         env["types"]=var_types
         if ast_prog:
             post_id, Q_values,templete = sketch_verify(P, ast_prog, Q, env,linv=linv,global_env=env)
-            Q_values_store.append(Q_values)
-            if god_program :
-                if not check_aginst_current_program(god_program,Q_values,post_id,env):
+    else:
+        first_example = True
+        god_program = None
+        Q_values_store=[]
+        for idx,example in enumerate(examples):
+            P = example['P']
+            Q = example['Q']
+            ast_prog = WhileParser()(program)
+            env = mk_env(pvars)
+            env["types"]=var_types
+            if ast_prog:
+                post_id, Q_values,templete = sketch_verify(P, ast_prog, Q, env,linv=linv,global_env=env)
+                Q_values_store.append(Q_values)
+                if god_program :
+                    if not check_aginst_current_program(god_program,Q_values,post_id,env):
+                        god_program = send_to_synt(Q_values_store,post_id,env,templete)
+                else:
+                    #first check if current god_prog is 
                     god_program = send_to_synt(Q_values_store,post_id,env,templete)
+                
+
             else:
-                #first check if current god_prog is 
-                god_program = send_to_synt(Q_values_store,post_id,env,templete)
-            
+                print(">> Invalid program.")
 
-        else:
-            print(">> Invalid program.")
-
-    program = program.replace("??",god_program)
-    ast_program = WhileParser()(program)
-    print(f"The program is {program}")
-    print(">> Verifying the following program:")
-    #TODO: need to handle And of Z3 in examples
-    P = lambda d: And(d['t'] == 0,d['x'] == 3)
-    Q = lambda d: And(d['t'] == 9,d['x'] == 3)
-    verify(P, ast_program, Q,pvars, linv=linv)
+        program = program.replace("??",god_program)
+        ast_program = WhileParser()(program)
+        print(f"The program is {program}")
+        print(">> Verifying the following program:")
+        #TODO: need to handle And of Z3 in examples
+        P = lambda d: And(d['t'] == 0,d['x'] == 3)
+        Q = lambda d: And(d['t'] == 9,d['x'] == 3)
+        verify(P, ast_program, Q,pvars, linv=linv)
 
