@@ -23,10 +23,10 @@ operators = {
 }
 
 # Define a recursive function to convert the AST to a Z3 formula
-def ast_to_z3(node, variables):
+def ast_to_z3(node, variables,free_vars=[]):
     if isinstance(node, ast.Compare):
-        left = ast_to_z3(node.left, variables)
-        right = ast_to_z3(node.comparators[0], variables)
+        left = ast_to_z3(node.left, variables,free_vars)
+        right = ast_to_z3(node.comparators[0], variables,free_vars)
         operator_func = operators[type(node.ops[0])]
         return operator_func(left, right)
     if isinstance(node, ast.Name):
@@ -34,8 +34,10 @@ def ast_to_z3(node, variables):
             return variables[node.id]
         #its a num 
         if "num" in node.id :
+            free_vars.append(Int(node.id))
             return Int(node.id)
         elif "string" in node.id:
+            free_vars.append(String(node.id))
             return String(node.id)
         raise ValueError()
     elif isinstance(node,ast.Constant):
@@ -45,12 +47,12 @@ def ast_to_z3(node, variables):
             return StringVal(node.value)
         raise ValueError
     elif isinstance(node, ast.BinOp):
-        left = ast_to_z3(node.left, variables)
-        right = ast_to_z3(node.right, variables)
+        left = ast_to_z3(node.left, variables,free_vars)
+        right = ast_to_z3(node.right, variables,free_vars)
         operator_func = operators[type(node.op)]
         return operator_func(left, right)
     elif isinstance(node,ast.Expression):
-        return ast_to_z3(node.body,variables)
+        return ast_to_z3(node.body,variables,free_vars)
     #TODO: add section of "Calls" for string operations
 
 count = 0 

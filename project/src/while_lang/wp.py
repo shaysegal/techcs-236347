@@ -140,11 +140,14 @@ def send_to_synt_assert(assert_cond,post_id,templete_prog,env):
         full_program = assert_cond.replace(post_id,temp_prog)
         try:
             full_program = full_program.replace("=",'==')
-            z3_prog = ast_to_z3(ast.parse(full_program,mode='eval'),z3_lut)
+            free_vars = []
+            z3_prog = ast_to_z3(ast.parse(full_program,mode='eval'),z3_lut,free_vars)
         except Exception as e:
             # print("z3 Error")
             continue
         formula = Not(z3_prog)
+        if free_vars:
+            formula = z3.Exists(free_vars, formula)
         sol.add(formula)
         status = sol.check()
         if status != sat:
