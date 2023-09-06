@@ -18,11 +18,17 @@ operators = {
     ast.Add: lambda x, y: x + y,
     ast.Sub: lambda x, y: x - y,
     ast.Mult: lambda x, y: x * y,
-    ast.Div: lambda x, y: x / y
+    ast.Div: lambda x, y: x / y,
+    ast.Eq: lambda x, y: x == y
 }
 
 # Define a recursive function to convert the AST to a Z3 formula
 def ast_to_z3(node, variables):
+    if isinstance(node, ast.Compare):
+        left = ast_to_z3(node.left, variables)
+        right = ast_to_z3(node.comparators[0], variables)
+        operator_func = operators[type(node.ops[0])]
+        return operator_func(left, right)
     if isinstance(node, ast.Name):
         if node.id in variables:
             return variables[node.id]

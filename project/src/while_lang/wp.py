@@ -112,7 +112,50 @@ def check_current_values_againt_program(prog,Q_values,post_id):
         print(f"Error: {e}")
         return False
 
-def send_to_synt(values_array,post_id,env,template):
+
+def send_to_synt_assert(assert_cond,post_id,templete_prog,env):
+    global grammar_rules,terminals
+    var_types = env["types"]
+    varables = env.copy()
+    del varables['types']
+    del varables[post_id]
+    for var in varables:
+        if var_types[var] == Int :
+            grammar_rules['E_num'] = [var]+ grammar_rules['E_num']
+            continue
+        if var_types[var] == String :
+            grammar_rules['E_string'] = [var]+ grammar_rules['E_string']
+            continue
+        raise ValueError()
+    
+    terminals.update(varables.keys())
+    for values in varables:
+            z3_lut={}
+            for k in values:
+                z3_type_ctor=var_types[k]
+                z3_lut[k]=z3_type_ctor(k)
+    for program in generate_programs_by_depth("E", 5,grammar_rules,terminals):
+        sol = Solver()
+        temp_prog = templete_prog.replace("??",program)
+        full_program = assert_cond.replace(post_id,temp_prog)
+        try:
+            full_program = full_program.replace("=",'==')
+            z3_prog = ast_to_z3(ast.parse(full_program,mode='eval'),z3_lut)
+        except Exception as e:
+            # print("z3 Error")
+            continue
+        formula = Not(z3_prog)
+        sol.add(formula)
+        status = sol.check()
+        if status != sat:
+            m = sol.model()
+            for num in list(filter(lambda v: v.startswith("num"),map(lambda v: str(v),m.decls()))):
+                program = program.replace(num,str(m[Int(num)]))
+            for string_element in list(filter(lambda v: v.startswith("string_element"),map(lambda v: str(v),m.decls()))):
+                program = program.replace(string_element,str(m[String(string_element)]))
+            return program
+
+def send_to_synt_pbe(values_array,post_id,env,template):
     global grammar_rules,terminals
     var_types = env["types"]
     expected_value = values_array[0][post_id]
@@ -165,10 +208,6 @@ def send_to_synt(values_array,post_id,env,template):
             for string_element in list(filter(lambda v: v.startswith("string_element"),map(lambda v: str(v),m.decls()))):
                 program = program.replace(string_element,str(m[String(string_element)]))
             return program
-    # if(prog == None):
-    #     raise Exception("No program found")
-    # return prog
-
 def inner_verify(P, ast, Q, env ,linv,global_env):
     global old_prog
     match ast.root :
@@ -312,8 +351,26 @@ def check_aginst_current_program(god_program,values,post_id,env):
 
     status = sol.check()
     return status == sat
-        
 
+def get_sketch_program(ast):
+    for node in PreorderWalk(ast):
+        if node.root == ":=":
+            if "??" in node.subtrees[1].terminals:
+                template = ""
+                for sketch_node in InorderWalk(node.subtrees[1]):
+                    if sketch_node.root == "id" or sketch_node.root == "sketch": continue
+                    template += sketch_node.root
+                    template += " "
+                template = template[:-1]
+                post_id = node.subtrees[0].subtrees[0].root
+                break
+    return post_id,template
+            
+
+def get_assert_cond(program):
+    for word in program.split():
+        if word == "assert":
+            return program.split("assert")[1].split(";")[0].strip()
 
 if __name__ == '__main__':
     mode = 'Assert'
@@ -333,7 +390,10 @@ if __name__ == '__main__':
         env = mk_env(pvars)
         env["types"]=var_types
         if ast_prog:
-            post_id, Q_values,templete = sketch_verify(P, ast_prog, Q, env,linv=linv,global_env=env)
+            assert_cond = get_assert_cond(program)
+            post_id,templete_prog = get_sketch_program(ast_prog)
+            god_program = send_to_synt_assert(assert_cond,post_id,templete_prog,env)
+
     else:
         first_example = True
         god_program = None
@@ -349,10 +409,10 @@ if __name__ == '__main__':
                 Q_values_store.append(Q_values)
                 if god_program :
                     if not check_aginst_current_program(god_program,Q_values,post_id,env):
-                        god_program = send_to_synt(Q_values_store,post_id,env,templete)
+                        god_program = send_to_synt_pbe(Q_values_store,post_id,env,templete)
                 else:
                     #first check if current god_prog is 
-                    god_program = send_to_synt(Q_values_store,post_id,env,templete)
+                    god_program = send_to_synt_pbe(Q_values_store,post_id,env,templete)
                 
             else:
                 print(">> Invalid program.")
