@@ -7,10 +7,10 @@ from parsing.silly import SillyLexer
 
 class WhileParser(object):
 
-    TOKENS = r"(if|then|else|while|do|skip)(?![\w\d_])   (?P<id>[^\W\d]\w*)   (?P<sketch>\?\?)   (?P<num>[+\-]?\d+)   (?P<op>[!<>]=|([+\-*/<>=]))    [();]  :=".split()
+    TOKENS = r"(if|then|else|while|do|skip|assert)(?![\w\d_])   (?P<id>[^\W\d]\w*)   (?P<sketch>\?\?)   (?P<num>[+\-]?\d+)   (?P<op>[!<>]=|([+\-*/<>=]))    [();]  :=".split()
     GRAMMAR = r"""
     S   ->   S1     |   S1 ; S
-    S1  ->   skip   |   id := E   |   if E then S else S1   |   while E do S1
+    S1  ->   skip   |   id := E   |   if E then S else S1   |   while E do S1 | assert E
     S1  ->   ( S )
     E   ->   E0   |   E0 op E0
     E0  ->   id   |   num   |   sketch
