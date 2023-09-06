@@ -51,3 +51,30 @@ examples.append(example1)
 example2 = {}
 example2['P'] = lambda d: d['t'] == 0 and d['x'] == 3
 example2['Q'] = lambda d: d['t'] == 9 and d['x'] == 3
+
+
+
+
+#Asserion
+mode = 'Assert'
+program =  "t := x * ?? ; assert t = x + x"
+linv = lambda d: d['x'] >= 0
+pvars = ['t', 'x']
+var_types={
+    't':Int,
+    'x':Int
+}
+examples =[]
+example1 = {}
+
+
+
+mode = 'Assert'
+program =  "t := x * ?? + y ; assert t = x + y"
+linv = lambda d: d['x'] >= 0
+pvars = ['t', 'x','y']
+var_types={
+'t':Int,
+'x':Int,
+'y':Int
+}

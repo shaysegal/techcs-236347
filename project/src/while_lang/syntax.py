@@ -12,7 +12,7 @@ class WhileParser(object):
     S   ->   S1     |   S1 ; S 
     S1  ->   skip   |   id := E   |   if E then S else S1   |   while E do S1 | assert E
     S1  ->   ( S )
-    E   ->   E0   |   E0 op E 
+    E   ->   E0   |   E op E0 
     E0  ->   id   |   num   |   sketch
     E0  ->   ( E )
     """

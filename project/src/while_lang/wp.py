@@ -5,7 +5,7 @@ import ast
 path_root = Path(__file__).parents[2]
 sys.path.append(str(path_root)+'/lib')
 sys.path.append(str(path_root)+'/src')
-from adt.tree.walk import PreorderWalk, InorderWalk
+from adt.tree.walk import PreorderWalk, InorderWalk, PostorderWalk
 from while_lang.syntax import WhileParser
 import operator
 import re
@@ -129,11 +129,10 @@ def send_to_synt_assert(assert_cond,post_id,templete_prog,env):
         raise ValueError()
     
     terminals.update(varables.keys())
+    z3_lut={}
     for values in varables:
-            z3_lut={}
-            for k in values:
-                z3_type_ctor=var_types[k]
-                z3_lut[k]=z3_type_ctor(k)
+        z3_type_ctor=var_types[values]
+        z3_lut[values]=z3_type_ctor(values)
     for program in generate_programs_by_depth("E", 5,grammar_rules,terminals):
         sol = Solver()
         temp_prog = templete_prog.replace("??",program)
@@ -377,15 +376,14 @@ def get_assert_cond(program):
 
 if __name__ == '__main__':
     mode = 'Assert'
-    program =  "t := x * ?? ; assert t = x + x"
+    program =  "t := x * ?? + y ; assert t = x + x + x + y"
     linv = lambda d: d['x'] >= 0
-    pvars = ['t', 'x']
+    pvars = ['t', 'x','y']
     var_types={
         't':Int,
-        'x':Int
+        'x':Int,
+        'y':Int
     }
-    P = lambda d: And(d['t'] == 0,d['x'] == 2)
-    Q = lambda d: And(d['t'] == 4,d['x'] == 2)
     examples =[]
     example1 = {}
     if mode == 'Assert':
@@ -397,7 +395,7 @@ if __name__ == '__main__':
             post_id,templete_prog = get_sketch_program(ast_prog)
             god_program = send_to_synt_assert(assert_cond,post_id,templete_prog,env)
             # TODO: check if pattern_to_remove is good for any case
-            pattern_to_remove = r"assert \w+ = \w+ [+\-*/] \w+"
+            pattern_to_remove = r"assert \w+ = (\w+ [+\-*/] \w+ [+\-*/]?)+"
             program = re.sub(pattern_to_remove, "", program)
     else:
         first_example = True
@@ -421,14 +419,16 @@ if __name__ == '__main__':
                 
             else:
                 print(">> Invalid program.")
-                
+
     if program.endswith('; '): program = program.replace('; ', '')
     program = program.replace("??",god_program)
     ast_program = WhileParser()(program)
     print(f"The program is {program}")
     print(">> Verifying the following program:")
     #TODO: need to handle And of Z3 in examples
-    P = lambda d: And(d['t'] == 0,d['x'] == 2)
-    Q = lambda d: And(d['t'] == 4,d['x'] == 2)
+    # P = lambda d: And(d['t'] == 0,d['x'] == 2,d['y'] == 2)
+    # Q = lambda d: And(d['t'] == 4,d['x'] == 2,d['y'] == 2)
+    P = lambda d: And(And(d['t'] == 0,d['x'] == 2),d['y'] == 2)
+    Q = lambda d: And(And(d['t'] == 4,d['x'] == 2),d['y'] == 2)
     verify(P, ast_program, Q,pvars, linv=linv)
 
