@@ -129,7 +129,7 @@ def send_to_synt(values_array,post_id,env):
     
     terminals.update(prog_values.keys())
     for program in generate_programs_by_depth("E", 5,grammar_rules,terminals):
-        print("debug program",program)
+        # print("debug program",program)
         sol = Solver()
         should_check=True
         for example_number,values in enumerate(values_array):
@@ -180,19 +180,19 @@ def inner_verify(P, ast, Q, env ,linv,global_env):
         case ":=":
             #assign
 
-            if ast.subtrees[1].root == "sketch": # TODO: doest this still necesery ? 
-                post_id = ast.subtrees[0].subtrees[0].root
-                # P_values = extract_values_from_Q(P,env)
-                Q_values = extract_values_from_Q(Q,env) 
-                # if not first example , check aginst old generated program.
-                old_fits = False
-                if old_prog != None:
-                    old_fits = check_current_values_againt_program(old_prog,Q_values,post_id)
-                if old_fits:
-                    return old_prog
-                working_prog = send_to_synt(Q_values,post_id,env)
-                old_prog = working_prog
-                return working_prog
+            # if ast.subtrees[1].root == "sketch": # TODO: doest this still necesery ? 
+            #     post_id = ast.subtrees[0].subtrees[0].root
+            #     # P_values = extract_values_from_Q(P,env)
+            #     Q_values = extract_values_from_Q(Q,env) 
+            #     # if not first example , check aginst old generated program.
+            #     old_fits = False
+            #     if old_prog != None:
+            #         old_fits = check_current_values_againt_program(old_prog,Q_values,post_id)
+            #     if old_fits:
+            #         return old_prog
+            #     working_prog = send_to_synt(Q_values,post_id,env)
+            #     old_prog = working_prog
+            #     return working_prog
             #    P,Q
             #    P-> values of variable.
             #    sketch -> function that i create 
@@ -237,24 +237,14 @@ def sketch_verify(P, ast, Q, env ,linv,global_env):
     global old_prog
     match ast.root :
         case ";":
-            #seq 
-            #M=None
-            #inner_lambda = inner_verify(P,ast.subtrees[1],Q,env,linv)
-            wp_c2=lambda new_env : inner_verify(P,ast.subtrees[1],Q,new_env.copy(),linv,global_env) #TODO: potential BUG - call to inner verify instead of sketch verfiy 
-            return inner_verify(P,ast.subtrees[0],wp_c2,env,linv,global_env)
+            wp_c2=lambda new_env : sketch_verify(P,ast.subtrees[1],Q,new_env.copy(),linv,global_env)  
+            return sketch_verify(P,ast.subtrees[0],wp_c2,env,linv,global_env)
         case ":=":
             #assign
             if ast.subtrees[1].root == "sketch":
                 post_id = ast.subtrees[0].subtrees[0].root
                 Q_values = extract_values_from_Q(Q,env)
                 return post_id, Q_values
-            #    P,Q
-            #    P-> values of variable.
-            #    sketch -> function that i create 
-            #    for P,Q in [Ps,Qs]
-            #    And( P Implies sketch(p)=Q)
-            #    prog = send_to_synt(Ps,Qs)
-            #    return prog
             v,expr = ast.subtrees
             e_at_x = upd(env,str(transform_cond(v,OP,env)),transform_cond(expr,OP,env))
             return Q(e_at_x)
@@ -264,13 +254,12 @@ def sketch_verify(P, ast, Q, env ,linv,global_env):
             P = linv
             b , c = ast.subtrees
             b = transform_cond(b,OP, global_env)
-
             return And(P(env),
                        ForAll(list(global_env.values()),                  
                               And(
                                 Implies(
                                     And(P(global_env),b),
-                                        inner_verify(P,c,linv,global_env.copy(),linv,global_env)),
+                                        sketch_verify(P,c,linv,global_env.copy(),linv,global_env)),
                                 Implies(
                                     And(P(global_env),Not(b)),
                                         Q(global_env))
@@ -280,10 +269,9 @@ def sketch_verify(P, ast, Q, env ,linv,global_env):
 
 
         case "if":    
-
             b ,c_1,c_2 = ast.subtrees
             b = transform_cond(b,OP, env)
-            return Or(And(b,inner_verify(P,c_1,Q,env,linv,global_env)),And(Not(b),inner_verify(P,c_2,Q,env,linv,global_env)))
+            return Or(And(b,sketch_verify(P,c_1,Q,env,linv,global_env)),And(Not(b),sketch_verify(P,c_2,Q,env,linv,global_env)))
         case "skip":    
             return Q(env)
     return 

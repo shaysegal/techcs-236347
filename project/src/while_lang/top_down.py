@@ -70,7 +70,7 @@ def generate_programs_by_depth(start_symbol, max_depth,grammar_rules,terminals,c
             for expansion in product(*[generate_programs_by_depth(token,  max_depth,grammar_rules,terminals, current_depth + 1) for token in tokens]):
             #for expansion in generate_expansions_by_depth(tokens,max_depth, grammar_rules, terminals, current_depth):
                 yield " ".join(expansion)
-            print("debug")
+            # print("debug")
 
 def generate_expansions_by_depth(tokens,max_depth, grammar_rules, terminals, current_depth):
     if not tokens:
