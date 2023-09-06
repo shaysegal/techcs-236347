@@ -112,7 +112,7 @@ def check_current_values_againt_program(prog,Q_values,post_id):
         print(f"Error: {e}")
         return False
 
-def send_to_synt(values_array,post_id,env):
+def send_to_synt(values_array,post_id,env,template):
     global grammar_rules,terminals
     var_types = env["types"]
     expected_value = values_array[0][post_id]
@@ -139,7 +139,8 @@ def send_to_synt(values_array,post_id,env):
                 z3_type_ctor=var_types[k]
                 z3_lut[k]=z3_type_ctor(k+str(example_number))
             try:
-                z3_prog = ast_to_z3(ast.parse(program,mode='eval'),z3_lut)
+                full_program = template.replace("??",program)
+                z3_prog = ast_to_z3(ast.parse(full_program,mode='eval'),z3_lut)
             except Exception as e:
                 print("z3 Error")
                 should_check=False
@@ -241,10 +242,12 @@ def sketch_verify(P, ast, Q, env ,linv,global_env):
             return sketch_verify(P,ast.subtrees[0],wp_c2,env,linv,global_env)
         case ":=":
             #assign
+            #t = x * ?? -> Tree(x , * , sketch) 
             if ast.subtrees[1].root == "sketch":
+                template = "x * ??" # TODO
                 post_id = ast.subtrees[0].subtrees[0].root
                 Q_values = extract_values_from_Q(Q,env)
-                return post_id, Q_values
+                return post_id, Q_values , template
             v,expr = ast.subtrees
             e_at_x = upd(env,str(transform_cond(v,OP,env)),transform_cond(expr,OP,env))
             return Q(e_at_x)
@@ -358,14 +361,14 @@ if __name__ == '__main__':
         env = mk_env(pvars)
         env["types"]=var_types
         if ast_prog:
-            post_id, Q_values = sketch_verify(P, ast_prog, Q, env,linv=linv,global_env=env)
+            post_id, Q_values,templete = sketch_verify(P, ast_prog, Q, env,linv=linv,global_env=env)
             Q_values_store.append(Q_values)
             if god_program :
                 if not check_aginst_current_program(god_program,Q_values,post_id,env):
-                    god_program = send_to_synt(Q_values_store,post_id,env)
+                    god_program = send_to_synt(Q_values_store,post_id,env,templete)
             else:
                 #first check if current god_prog is 
-                god_program = send_to_synt(Q_values_store,post_id,env)
+                god_program = send_to_synt(Q_values_store,post_id,env,template)
             
 
         else:
