@@ -5,7 +5,7 @@ import ast
 path_root = Path(__file__).parents[2]
 sys.path.append(str(path_root)+'/lib')
 sys.path.append(str(path_root)+'/src')
-from adt.tree.walk import PreorderWalk
+from adt.tree.walk import PreorderWalk, InorderWalk
 from while_lang.syntax import WhileParser
 import operator
 import re
@@ -229,8 +229,12 @@ def sketch_verify(P, ast, Q, env ,linv,global_env):
                 return post_id, Q_values , template
             if "??" in ast.subtrees[1].terminals:
                 #TODO: inorder tree walk to get program
-                
-                template = ast.subtrees[1].root
+                template = ""
+                for node in InorderWalk(ast.subtrees[1]):
+                    if node.root == "id" or node.root == "sketch": continue
+                    template += node.root
+                    template += " "
+                template = template[:-1]
                 post_id = ast.subtrees[0].subtrees[0].root
                 Q_values = extract_values_from_Q(Q,env)
                 return post_id, Q_values , template

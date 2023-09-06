@@ -51,20 +51,16 @@ class PostorderWalk(TreeWalk):
 class InorderWalk(TreeWalk):
         
         def __iter__(self):
-            #TODO: implement inorder walk
-            stack = []
-            current = self.tree
-
-            while stack or current:
-                while current:
-                    stack.append(current)
-                    current = current.subtrees[0]
-
-                current = stack.pop()
-                yield current
-                current = current.subtrees[1]
-
-
+            def inorder(node):
+                if node:
+                    if len(node.subtrees) > 0:
+                        yield from inorder(node.subtrees[0])  # Left subtree
+                    yield node
+                    if len(node.subtrees) > 1:
+                        yield from inorder(node.subtrees[1])  # Right subtree
+            ret = inorder(self.tree)
+            for subtree in ret:
+                yield subtree
 
 class RichTreeWalk(object):
     """
