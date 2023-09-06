@@ -237,7 +237,7 @@ def sketch_verify(P, ast, Q, env ,linv,global_env):
                 template = template[:-1]
                 post_id = ast.subtrees[0].subtrees[0].root
                 Q_values = extract_values_from_Q(Q,env)
-                return post_id, Q_values , template
+                return post_id, Q_values, template
             v,expr = ast.subtrees
             e_at_x = upd(env,str(transform_cond(v,OP,env)),transform_cond(expr,OP,env))
             return Q(e_at_x)
@@ -271,7 +271,7 @@ def sketch_verify(P, ast, Q, env ,linv,global_env):
 
 
 
-def verify(P, ast, Q, linv=None):
+def verify(P, ast, Q, pvars,linv=None):
     """
     Verifies a Hoare triple {P} c {Q}
     Where P, Q are assertions (see below for examples)
@@ -281,7 +281,7 @@ def verify(P, ast, Q, linv=None):
     it is not.
     """
     #P,Q
-    pvars = ['a','b','sum']#set(filter(lambda t: type(t) == str and t!='skip' ,ast.terminals))
+    # pvars = ['a','b','sum']#set(filter(lambda t: type(t) == str and t!='skip' ,ast.terminals))
     env = mk_env(pvars)
     ret = inner_verify(P, ast, Q, env.copy(),linv,env.copy())
     sol = Solver()
@@ -289,8 +289,10 @@ def verify(P, ast, Q, linv=None):
     sol.add(Not(formula))
     status = sol.check()
     if status == sat:
+        print(">> Invalid.")
         m = sol.model()
         return False , m
+    print(">> Valid.")
     return True ,None 
 
     # ...
@@ -315,7 +317,7 @@ def check_aginst_current_program(god_program,values,post_id,env):
 
 if __name__ == '__main__':
     program =  "t := x * ??"
-    linv = lambda d: d['y'] >= 0
+    linv = lambda d: d['x'] >= 0
     pvars = ['t', 'x']
     var_types={
         't':Int,
@@ -355,6 +357,7 @@ if __name__ == '__main__':
 
     program = program.replace("??",god_program)
     ast_program = WhileParser()(program)
-    # final verify
-    verify(P, ast_program, Q, linv=linv)
+    print(f"The program is {program}")
+    print(">> Verifying the following program:")
+    verify(P, ast_program, Q,pvars, linv=linv)
 
