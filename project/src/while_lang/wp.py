@@ -376,7 +376,7 @@ def get_assert_cond(program):
 
 if __name__ == '__main__':
     mode = 'Assert'
-    program =  "t := x * ?? + y ; assert t = x + x + x + y"
+    program =  "skip ; t := x * ?? ; assert t = x + x"
     linv = lambda d: d['x'] >= 0
     pvars = ['t', 'x','y']
     var_types={
@@ -395,7 +395,7 @@ if __name__ == '__main__':
             post_id,templete_prog = get_sketch_program(ast_prog)
             god_program = send_to_synt_assert(assert_cond,post_id,templete_prog,env)
             # TODO: check if pattern_to_remove is good for any case
-            pattern_to_remove = r"assert \w+ = (\w+ [+\-*/] \w+ [+\-*/]?)+"
+            pattern_to_remove = r"assert \w+ = (\w+ [+\-*/] \w+)( [+\-*/] \w+)*( ;)?"
             program = re.sub(pattern_to_remove, "", program)
     else:
         first_example = True
@@ -420,7 +420,7 @@ if __name__ == '__main__':
             else:
                 print(">> Invalid program.")
 
-    if program.endswith('; '): program = program.replace('; ', '')
+    if program.endswith('; '): program = program[-1::-1].replace('; ', '',1)[-1::-1]
     program = program.replace("??",god_program)
     ast_program = WhileParser()(program)
     print(f"The program is {program}")
