@@ -48,6 +48,23 @@ class PostorderWalk(TreeWalk):
             else:
                 stack += [(UP, top)] + [(DOWN, x) for x in top.subtrees]
 
+class InorderWalk(TreeWalk):
+        
+        def __iter__(self):
+            #TODO: implement inorder walk
+            stack = []
+            current = self.tree
+
+            while stack or current:
+                while current:
+                    stack.append(current)
+                    current = current.subtrees[0]
+
+                current = stack.pop()
+                yield current
+                current = current.subtrees[1]
+
+
 
 class RichTreeWalk(object):
     """

@@ -180,27 +180,6 @@ def inner_verify(P, ast, Q, env ,linv,global_env):
             return inner_verify(P,ast.subtrees[0],wp_c2,env,linv,global_env)
         case ":=":
             #assign
-
-            # if ast.subtrees[1].root == "sketch": # TODO: doest this still necesery ? 
-            #     post_id = ast.subtrees[0].subtrees[0].root
-            #     # P_values = extract_values_from_Q(P,env)
-            #     Q_values = extract_values_from_Q(Q,env) 
-            #     # if not first example , check aginst old generated program.
-            #     old_fits = False
-            #     if old_prog != None:
-            #         old_fits = check_current_values_againt_program(old_prog,Q_values,post_id)
-            #     if old_fits:
-            #         return old_prog
-            #     working_prog = send_to_synt(Q_values,post_id,env)
-            #     old_prog = working_prog
-            #     return working_prog
-            #    P,Q
-            #    P-> values of variable.
-            #    sketch -> function that i create 
-            #    for P,Q in [Ps,Qs]
-            #    And( P Implies sketch(p)=Q)
-            #    prog = send_to_synt(Ps,Qs)
-            #    return prog
             v,expr = ast.subtrees
             e_at_x = upd(env,str(transform_cond(v,OP,env)),transform_cond(expr,OP,env))
             return Q(e_at_x)
@@ -242,9 +221,16 @@ def sketch_verify(P, ast, Q, env ,linv,global_env):
             return sketch_verify(P,ast.subtrees[0],wp_c2,env,linv,global_env)
         case ":=":
             #assign
-            #t = x * ?? -> Tree(x , * , sketch) 
+            #t = x * ?? -> Tree(x , * , sketch)
             if ast.subtrees[1].root == "sketch":
-                template = "x * ??" # TODO
+                template = ast.subtrees[1].root
+                post_id = ast.subtrees[0].subtrees[0].root
+                Q_values = extract_values_from_Q(Q,env)
+                return post_id, Q_values , template
+            if "??" in ast.subtrees[1].terminals:
+                #TODO: inorder tree walk to get program
+                
+                template = ast.subtrees[1].root
                 post_id = ast.subtrees[0].subtrees[0].root
                 Q_values = extract_values_from_Q(Q,env)
                 return post_id, Q_values , template
@@ -324,33 +310,22 @@ def check_aginst_current_program(god_program,values,post_id,env):
 
 
 if __name__ == '__main__':
-    program =  "sum := ??"
+    program =  "t := x * ??"
     linv = lambda d: d['y'] >= 0
-    pvars = ['a', 'b', 'sum']
-    #var_types={
-    #    'a':Int,
-    #    'b':Int,
-    #    'sum':Int
-    #}
+    pvars = ['t', 'x']
     var_types={
-        'a':String,
-        'b':String,
-        'sum':String
+        't':Int,
+        'x':Int
     }
     examples =[]
     example1 = {}
-    #example1['P'] = lambda d: d['a'] == 3 and d['b'] == 4 and d['sum'] == 0
-    #example1['Q'] = lambda d: d['a'] == 3 and d['b'] == 4 and d['sum'] == 12
-    example1['P'] = lambda d: d['a'] == 'abc' and d['b'] == 'aaa' and d['sum'] == ''
-    example1['Q'] = lambda d: d['a'] == 'abc' and d['b'] == 'aaa' and d['sum'] == 'abcaaa'
+    example1['P'] = lambda d: d['t'] == 0 and d['x'] == 2
+    example1['Q'] = lambda d: d['t'] == 6 and d['x'] == 2
     examples.append(example1)
     example2 = {}
-    #example2['P'] = lambda d: d['a'] == 5 and d['b'] == 2 and d['sum'] == 0
-    #example2['Q'] = lambda d: d['a'] == 5 and d['b'] == 2 and d['sum'] == 10
-    example2['P'] = lambda d: d['a'] == 'abc' and d['b'] == 'bab' and d['sum'] == ''
-    example2['Q'] = lambda d: d['a'] == 'abc' and d['b'] == 'bab' and d['sum'] == 'abcbab'
+    example2['P'] = lambda d: d['t'] == 0 and d['x'] == 3
+    example2['Q'] = lambda d: d['t'] == 9 and d['x'] == 3
     examples.append(example2) 
-    # find god_program
     first_example = True
     god_program = None
     Q_values_store=[]
@@ -368,7 +343,7 @@ if __name__ == '__main__':
                     god_program = send_to_synt(Q_values_store,post_id,env,templete)
             else:
                 #first check if current god_prog is 
-                god_program = send_to_synt(Q_values_store,post_id,env,template)
+                god_program = send_to_synt(Q_values_store,post_id,env,templete)
             
 
         else:
