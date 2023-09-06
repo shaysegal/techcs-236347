@@ -359,5 +359,8 @@ if __name__ == '__main__':
     ast_program = WhileParser()(program)
     print(f"The program is {program}")
     print(">> Verifying the following program:")
+    #TODO: need to handle And of Z3 in examples
+    P = lambda d: And(d['t'] == 0,d['x'] == 3)
+    Q = lambda d: And(d['t'] == 9,d['x'] == 3)
     verify(P, ast_program, Q,pvars, linv=linv)
 
