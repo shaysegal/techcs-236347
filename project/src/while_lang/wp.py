@@ -317,7 +317,7 @@ def check_aginst_current_program(god_program,values,post_id,env):
 
 if __name__ == '__main__':
     mode = 'Assert'
-    program =  "t := x * ?? ; assert t == x + x"
+    program =  "t := x * ?? ; assert t = x + x"
     linv = lambda d: d['x'] >= 0
     pvars = ['t', 'x']
     var_types={
@@ -326,6 +326,8 @@ if __name__ == '__main__':
     }
     P = lambda d: And(d['t'] == 0,d['x'] == 2)
     Q = lambda d: And(d['t'] == 4,d['x'] == 2)
+    examples =[]
+    example1 = {}
     if mode == 'Assert':
         ast_prog = WhileParser()(program)
         env = mk_env(pvars)
@@ -352,7 +354,6 @@ if __name__ == '__main__':
                     #first check if current god_prog is 
                     god_program = send_to_synt(Q_values_store,post_id,env,templete)
                 
-
             else:
                 print(">> Invalid program.")
 
