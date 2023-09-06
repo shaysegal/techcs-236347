@@ -316,7 +316,8 @@ def check_aginst_current_program(god_program,values,post_id,env):
 
 
 if __name__ == '__main__':
-    program =  "t := x * ??"
+    program =  """t := x * ??;
+                assert(t == x + x)"""
     linv = lambda d: d['x'] >= 0
     pvars = ['t', 'x']
     var_types={

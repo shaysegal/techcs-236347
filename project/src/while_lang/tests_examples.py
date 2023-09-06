@@ -32,3 +32,22 @@ examples.append(example2)
 first_example = True
 god_program = None
 Q_values_store=[]
+
+
+
+
+program =  "t := x * ??"
+linv = lambda d: d['x'] >= 0
+pvars = ['t', 'x']
+var_types={
+    't':Int,
+    'x':Int
+}
+examples =[]
+example1 = {}
+example1['P'] = lambda d: d['t'] == 0 and d['x'] == 2
+example1['Q'] = lambda d: d['t'] == 6 and d['x'] == 2
+examples.append(example1)
+example2 = {}
+example2['P'] = lambda d: d['t'] == 0 and d['x'] == 3
+example2['Q'] = lambda d: d['t'] == 9 and d['x'] == 3
