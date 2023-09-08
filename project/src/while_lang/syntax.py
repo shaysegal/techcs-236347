@@ -7,13 +7,13 @@ from parsing.silly import SillyLexer
 
 class WhileParser(object):
 
-    TOKENS = r"(if|then|else|while|do|skip|assert)(?![\w\d_])   (?P<op>[!<>]=|([+\-*/<>=])|(concat))   (?P<id>[^\W\d]\w*)   (?P<sketch>\?\?)   (?P<num>[+\-]?\d+)    [();]  :=".split()
+    TOKENS = r"(if|then|else|while|do|skip|assert)(?![\w\d_])   (?P<op>[!<>]=|([+\-*/<>=])|(concat|indexof))    (?P<unary_op>(len))   (?P<id>[^\W\d]\w*)   (?P<sketch>\?\?)   (?P<num>[+\-]?\d+)    [();]  :=".split()
     #TOKENS = r"(if|then|else|while|do|skip|assert)(?![\w\d_])   (?P<id>[^\W\d]\w*)   (?P<sketch>\?\?)   (?P<num>[+\-]?\d+)   (?P<string_object>((\"\w+\")|(\'\w+\')))   (?P<op>[!<>]=|([+\-*/<>=]))   (?P<string_op>(IndexOf|++))   (?P<string_unary_op>(Len))    [();]  :=".split()
     GRAMMAR = r"""
     S   ->   S1     |   S1 ; S 
     S1  ->   skip   |   id := E   |   if E then S else S1   |   while E do S1 | assert E
     S1  ->   ( S )
-    E   ->   E0   |   E op E0   |    E string_op E0    |    string_unary_op E
+    E   ->   E0   |   E op E0   |   unary_op E
     E0  ->   id   |   num   |   sketch   |   string_object
     E0  ->   ( E )
     """
@@ -54,6 +54,8 @@ class WhileParser(object):
             return self.postprocess(t.subtrees[0])
         elif t.root in ['S', 'S1', 'E'] and len(t.subtrees) == 3 and t.subtrees[1].root in [':=', ';', 'op']:
             return Tree(t.subtrees[1].subtrees[0].root, [self.postprocess(s) for s in [t.subtrees[0], t.subtrees[2]]])
+        elif t.root in ['S', 'S1', 'E'] and len(t.subtrees) == 2 and t.subtrees[0].root in ['unary_op']:
+            return Tree(t.subtrees[0].subtrees[0].root, [self.postprocess(t.subtrees[1])])
         elif len(t.subtrees) == 3 and t.subtrees[0].root == '(':
             return self.postprocess(t.subtrees[1])
         elif t.root == 'S1' and t.subtrees[0].root in ['if', 'while']:
@@ -67,10 +69,10 @@ class WhileParser(object):
     
 class ExpressionWhileParser(object):
 
-    TOKENS = r"(if|then|else|while|do|skip|assert)(?![\w\d_])   (?P<op>[!<>]=|([+\-*/<>=])|(concat))   (?P<id>[^\W\d]\w*)   (?P<sketch>\?\?)   (?P<num>[+\-]?\d+)    [();]  :=".split()
+    TOKENS = r"(if|then|else|while|do|skip|assert)(?![\w\d_])   (?P<op>[!<>]=|([+\-*/<>=])|(concat|indexof))    (?P<unary_op>(len))   (?P<id>[^\W\d]\w*)   (?P<sketch>\?\?)   (?P<num>[+\-]?\d+)    [();]  :=".split()
     #TOKENS = r"(if|then|else|while|do|skip|assert)(?![\w\d_])   (?P<id>[^\W\d]\w*)   (?P<sketch>\?\?)   (?P<num>[+\-]?\d+)   (?P<string_object>((\"\w+\")|(\'\w+\')))   (?P<op>[!<>]=|([+\-*/<>=]))   (?P<string_op>(IndexOf|++))   (?P<string_unary_op>(Len))    [();]  :=".split()
     GRAMMAR = r"""
-    E   ->   E0   |   E op E0   |    E string_op E0    |    string_unary_op E
+    E   ->   E0   |   E op E0   |   unary_op E
     E0  ->   id   |   num   |   sketch   |   string_object
     E0  ->   ( E )
     """
@@ -100,6 +102,8 @@ class ExpressionWhileParser(object):
             return self.postprocess(t.subtrees[0])
         elif t.root in ['S', 'S1', 'E'] and len(t.subtrees) == 3 and t.subtrees[1].root in [':=', ';', 'op']:
             return Tree(t.subtrees[1].subtrees[0].root, [self.postprocess(s) for s in [t.subtrees[0], t.subtrees[2]]])
+        elif t.root in ['S', 'S1', 'E'] and len(t.subtrees) == 2 and t.subtrees[0].root in ['unary_op']:
+            return Tree(t.subtrees[0].subtrees[0].root, [self.postprocess(t.subtrees[1])])
         elif len(t.subtrees) == 3 and t.subtrees[0].root == '(':
             return self.postprocess(t.subtrees[1])
         elif t.root == 'S1' and t.subtrees[0].root in ['if', 'while']:

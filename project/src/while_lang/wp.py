@@ -19,10 +19,11 @@ OP = {'+': operator.add, '-': operator.sub,
       '*': operator.mul, '/': operator.floordiv,
       '!=': operator.ne, '>': operator.gt, '<': operator.lt,
       '<=': operator.le, '>=': operator.ge, '=': operator.eq,
-        'len':Length,#UnaryOP, might need something else - also - return int and not string
         'concat':Concat,
         "indexof":IndexOf #return int and not string
     }
+UNARY_OP={'len':Length,#UnaryOP, might need something else - also - return int and not string
+}
 terminals = set(["skip","string_element", "num", "+", "-", "*", "/", "if", "then", "else", "while", "do", ";",":=", "(", ")","concat","indexof","len"])
 non_terminals = set(["S", "S1", "E", "E_num","E_string"])
 grammar_rules = {
@@ -45,13 +46,16 @@ def upd(env, v, expr):
     env[v] = expr
     return env
 
-def transform_cond(cond,OP,env):
+def transform_cond(cond,env):
     #should transfrom string to Z3 formual using OP dictionary   
     for node in PreorderWalk(cond):
         if node.root in OP:
-            return OP[node.root](transform_cond(node.subtrees[0], OP, env),transform_cond(node.subtrees[1], OP, env))
+            return OP[node.root](transform_cond(node.subtrees[0],  env),transform_cond(node.subtrees[1],  env))
+        elif node.root in UNARY_OP:
+            return UNARY_OP[node.root](transform_cond(node.subtrees[0], env))
         else:
             return env[node.subtrees[0].root] if node.subtrees[0].root in env else node.subtrees[0].root
+        
 def extract_values_from_Q(Q,env):
     # raise NotImplemented
     values = {}
@@ -221,14 +225,14 @@ def inner_verify(P, ast, Q, env ,linv,global_env):
         case ":=":
             #assign
             v,expr = ast.subtrees
-            e_at_x = upd(env,str(transform_cond(v,OP,env)),transform_cond(expr,OP,env))
+            e_at_x = upd(env,str(transform_cond(v,env)),transform_cond(expr,env))
             return Q(e_at_x)
             #something with z3
         case "while":
 
             P = linv
             b , c = ast.subtrees
-            b = transform_cond(b,OP, global_env)
+            b = transform_cond(b, global_env)
 
             return And(P(env),
                        ForAll(list(global_env.values()),                  
@@ -247,7 +251,7 @@ def inner_verify(P, ast, Q, env ,linv,global_env):
         case "if":    
 
             b ,c_1,c_2 = ast.subtrees
-            b = transform_cond(b,OP, env)
+            b = transform_cond(b, env)
             return Or(And(b,inner_verify(P,c_1,Q,env,linv,global_env)),And(Not(b),inner_verify(P,c_2,Q,env,linv,global_env)))
         case "skip":    
             return Q(env)
@@ -279,14 +283,14 @@ def sketch_verify(P, ast, Q, env ,linv,global_env):
                 Q_values = extract_values_from_Q(Q,env)
                 return post_id, Q_values, template
             v,expr = ast.subtrees
-            e_at_x = upd(env,str(transform_cond(v,OP,env)),transform_cond(expr,OP,env))
+            e_at_x = upd(env,str(transform_cond(v,env)),transform_cond(expr,env))
             return Q(e_at_x)
             #something with z3
         case "while":
 
             P = linv
             b , c = ast.subtrees
-            b = transform_cond(b,OP, global_env)
+            b = transform_cond(b, global_env)
             return And(P(env),
                        ForAll(list(global_env.values()),                  
                               And(
@@ -303,7 +307,7 @@ def sketch_verify(P, ast, Q, env ,linv,global_env):
 
         case "if":    
             b ,c_1,c_2 = ast.subtrees
-            b = transform_cond(b,OP, env)
+            b = transform_cond(b, env)
             return Or(And(b,sketch_verify(P,c_1,Q,env,linv,global_env)),And(Not(b),sketch_verify(P,c_2,Q,env,linv,global_env)))
         case "skip":    
             return Q(env)
@@ -376,7 +380,7 @@ if __name__ == '__main__':
     mode = 'PBE'
     program =  "sum := ??"
     linv = lambda d: d['y'] >= 0
-    pvars = ['a', 'b', 'sum']
+    pvars = ['a', 'sum']
     #var_types={
     #    'a':Int,
     #    'b':Int,
@@ -384,21 +388,20 @@ if __name__ == '__main__':
     #}
     var_types={
         'a':String,
-        'b':String,
-        'sum':String
+        'sum':Int
     }
     examples =[]
     example1 = {}
     #example1['P'] = lambda d: d['a'] == 3 and d['b'] == 4 and d['sum'] == 0
     #example1['Q'] = lambda d: d['a'] == 3 and d['b'] == 4 and d['sum'] == 12
-    example1['P'] = lambda d: d['a'] == 'abc' and d['b'] == 'aaa' and d['sum'] == ''
-    example1['Q'] = lambda d: d['a'] == 'abc' and d['b'] == 'aaa' and d['sum'] == 'abcaaa'
+    example1['P'] = lambda d: d['a'] == 'abc' and d['sum'] == 0
+    example1['Q'] = lambda d: d['a'] == 'abc' and d['sum'] == 3
     examples.append(example1)
     example2 = {}
     #example2['P'] = lambda d: d['a'] == 5 and d['b'] == 2 and d['sum'] == 0
     #example2['Q'] = lambda d: d['a'] == 5 and d['b'] == 2 and d['sum'] == 10
-    example2['P'] = lambda d: d['a'] == 'abc' and d['b'] == 'bab' and d['sum'] == ''
-    example2['Q'] = lambda d: d['a'] == 'abc' and d['b'] == 'bab' and d['sum'] == 'abcbab'
+    example2['P'] = lambda d: d['a'] == 'abcd' and d['sum'] == 0
+    example2['Q'] = lambda d: d['a'] == 'abcd' and d['sum'] == 4
     examples.append(example2) 
     # find god_program
     if mode == 'Assert':
@@ -443,9 +446,11 @@ if __name__ == '__main__':
     #TODO: need to handle And of Z3 in examples
     # P = lambda d: And(d['t'] == 0,d['x'] == 2,d['y'] == 2)
     # Q = lambda d: And(d['t'] == 4,d['x'] == 2,d['y'] == 2)
-    example1['P'] = lambda d: d['a'] == 'abc' and d['b'] == 'aaa' and d['sum'] == ''
-    example1['Q'] = lambda d: d['a'] == 'abc' and d['b'] == 'aaa' and d['sum'] == 'abcaaa'
-    P = lambda d: And(And(d['a'] == 'abc',d['b'] == 'aaa'),d['sum'] == '')
-    Q = lambda d: And(And(d['a'] == 'abc',d['b'] == 'aaa'),d['sum'] == 'abcaaa')
+    example1['P'] = lambda d: d['a'] == 'abc' and d['sum'] == 0
+    example1['Q'] = lambda d: d['a'] == 'abc' and d['sum'] == 3
+    P = lambda d: And(d['a'] == 'abc' , d['sum'] == 0)
+    Q = lambda d: And(d['a'] == 'abc' , d['sum'] == 3)
+    #P = lambda d: And(And(d['a'] == 'abc',d['b'] == 'aaa'),d['sum'] == '')
+    #Q = lambda d: And(And(d['a'] == 'abc',d['b'] == 'aaa'),d['sum'] == 'abcaaa')
     verify(P, ast_program, Q,pvars, linv=linv,env=env)
 
