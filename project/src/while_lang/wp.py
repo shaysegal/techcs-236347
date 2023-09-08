@@ -6,11 +6,11 @@ path_root = Path(__file__).parents[2]
 sys.path.append(str(path_root)+'/lib')
 sys.path.append(str(path_root)+'/src')
 from adt.tree.walk import PreorderWalk, InorderWalk, PostorderWalk
-from while_lang.syntax import WhileParser
+from syntax import ExpressionWhileParser,WhileParser
 import operator
 import re
 import inspect
-from top_down import generate_programs_by_depth,ast_to_z3
+from top_down import while_tree_to_z3,generate_programs_by_depth,ast_to_z3
 from z3 import Int,String, ForAll, Implies, Not, And, Or, Solver, unsat, sat,Length,Concat,IndexOf
 import z3
 old_prog = None
@@ -18,27 +18,26 @@ old_prog = None
 OP = {'+': operator.add, '-': operator.sub,
       '*': operator.mul, '/': operator.floordiv,
       '!=': operator.ne, '>': operator.gt, '<': operator.lt,
-      '<=': operator.le, '>=': operator.ge, '=': operator.eq}
-STRING_OP = {
-    'len':Length,#UnaryOP, might need something else - also - return int and not string
-    '++':Concat,
-    "indexOf":IndexOf #return int and not string
-}
-terminals = set(["skip","string_element", "num", "+", "-", "*", "/", "if", "then", "else", "while", "do", ";",":=", "(", ")"])
+      '<=': operator.le, '>=': operator.ge, '=': operator.eq,
+        'len':Length,#UnaryOP, might need something else - also - return int and not string
+        'concat':Concat,
+        "indexof":IndexOf #return int and not string
+    }
+terminals = set(["skip","string_element", "num", "+", "-", "*", "/", "if", "then", "else", "while", "do", ";",":=", "(", ")","concat","indexof","len"])
 non_terminals = set(["S", "S1", "E", "E_num","E_string"])
 grammar_rules = {
     "S": ["S1", "S1 ; S"],
     "S1": ["skip", "id := E", "if E then S else S1", "while E do S1", "( S )"],
     "E": ["E_num", "E_num OP E_num"," E_string","E_string OP_STRING E_string","UNARY_STRING_OP E_string"],
     "OP": ["+", "-", "*", "/"],
-    "OP_STRING":["++","IndexOf"],
-    "UNARY_STRING_OP":["Len"],
+    "OP_STRING":["concat","indexof"],
+    "UNARY_STRING_OP":["len"],
     "E_num": [ "num", "( E )"],
     "E_string": [ "string_element", "( E )"]
 }
 
-def mk_env(pvars):
-    return {v : Int(v) for v in pvars}
+def mk_env(pvars,types):
+    return {v : types[v](v) for v in pvars}
 
 
 def upd(env, v, expr):
@@ -163,14 +162,13 @@ def send_to_synt_pbe(values_array,post_id,env,template):
     expected_value = values_array[0][post_id]
     prog_values  = values_array[0].copy()
     del prog_values[post_id]
-    for var in values_array[0].keys():
-        if var_types[var] == Int :
+    for var in prog_values.keys():
+        if var_types[var] == Int and not var in grammar_rules['E_num']:
             grammar_rules['E_num'] = [var]+ grammar_rules['E_num']
             continue
-        if var_types[var] == String :
+        if var_types[var] == String and not var in grammar_rules['E_string']:
             grammar_rules['E_string'] = [var]+ grammar_rules['E_string']
             continue
-        raise ValueError()
     
     terminals.update(prog_values.keys())
     for program in generate_programs_by_depth("E", 5,grammar_rules,terminals):
@@ -185,16 +183,16 @@ def send_to_synt_pbe(values_array,post_id,env,template):
                 z3_lut[k]=z3_type_ctor(k+str(example_number))
             try:
                 full_program = template.replace("??",program)
-                z3_prog = ast_to_z3(ast.parse(full_program,mode='eval'),z3_lut)
+                z3_prog = while_tree_to_z3(ExpressionWhileParser()(full_program),z3_lut)
             except Exception as e:
-                print("z3 Error")
+                #print("z3 Error")
                 should_check=False
                 break
             formula = None
             try:
                 formula = operator.eq(z3_prog,expected_value)
             except Exception as e:
-                print("z3 Error")
+               # print("z3 Error")
                 should_check=False
                 break
             sol.add(formula)
@@ -210,6 +208,7 @@ def send_to_synt_pbe(values_array,post_id,env,template):
             for string_element in list(filter(lambda v: v.startswith("string_element"),map(lambda v: str(v),m.decls()))):
                 program = program.replace(string_element,str(m[String(string_element)]))
             return program
+    print("done")
 def inner_verify(P, ast, Q, env ,linv,global_env):
     global old_prog
     match ast.root :
@@ -264,7 +263,7 @@ def sketch_verify(P, ast, Q, env ,linv,global_env):
             #assign
             #t = x * ?? -> Tree(x , * , sketch)
             if ast.subtrees[1].root == "sketch":
-                template = ast.subtrees[1].root
+                template = "??"
                 post_id = ast.subtrees[0].subtrees[0].root
                 Q_values = extract_values_from_Q(Q,env)
                 return post_id, Q_values , template
@@ -312,7 +311,7 @@ def sketch_verify(P, ast, Q, env ,linv,global_env):
 
 
 
-def verify(P, ast, Q, pvars,linv=None):
+def verify(P, ast, Q, pvars,linv=None,env=None):
     """
     Verifies a Hoare triple {P} c {Q}
     Where P, Q are assertions (see below for examples)
@@ -323,7 +322,6 @@ def verify(P, ast, Q, pvars,linv=None):
     """
     #P,Q
     # pvars = ['a','b','sum']#set(filter(lambda t: type(t) == str and t!='skip' ,ast.terminals))
-    env = mk_env(pvars)
     ret = inner_verify(P, ast, Q, env.copy(),linv,env.copy())
     sol = Solver()
     formula = Implies(P(env),ret)
@@ -375,20 +373,37 @@ def get_assert_cond(program):
             return program.split("assert")[1].split(";")[0].strip()
 
 if __name__ == '__main__':
-    mode = 'Assert'
-    program =  "skip ; t := x * ?? ; assert t = x + x"
-    linv = lambda d: d['x'] >= 0
-    pvars = ['t', 'x','y']
+    mode = 'PBE'
+    program =  "sum := ??"
+    linv = lambda d: d['y'] >= 0
+    pvars = ['a', 'b', 'sum']
+    #var_types={
+    #    'a':Int,
+    #    'b':Int,
+    #    'sum':Int
+    #}
     var_types={
-        't':Int,
-        'x':Int,
-        'y':Int
+        'a':String,
+        'b':String,
+        'sum':String
     }
     examples =[]
     example1 = {}
+    #example1['P'] = lambda d: d['a'] == 3 and d['b'] == 4 and d['sum'] == 0
+    #example1['Q'] = lambda d: d['a'] == 3 and d['b'] == 4 and d['sum'] == 12
+    example1['P'] = lambda d: d['a'] == 'abc' and d['b'] == 'aaa' and d['sum'] == ''
+    example1['Q'] = lambda d: d['a'] == 'abc' and d['b'] == 'aaa' and d['sum'] == 'abcaaa'
+    examples.append(example1)
+    example2 = {}
+    #example2['P'] = lambda d: d['a'] == 5 and d['b'] == 2 and d['sum'] == 0
+    #example2['Q'] = lambda d: d['a'] == 5 and d['b'] == 2 and d['sum'] == 10
+    example2['P'] = lambda d: d['a'] == 'abc' and d['b'] == 'bab' and d['sum'] == ''
+    example2['Q'] = lambda d: d['a'] == 'abc' and d['b'] == 'bab' and d['sum'] == 'abcbab'
+    examples.append(example2) 
+    # find god_program
     if mode == 'Assert':
         ast_prog = WhileParser()(program)
-        env = mk_env(pvars)
+        env = mk_env(pvars,var_types)
         env["types"]=var_types
         if ast_prog:
             assert_cond = get_assert_cond(program)
@@ -405,7 +420,7 @@ if __name__ == '__main__':
             P = example['P']
             Q = example['Q']
             ast_prog = WhileParser()(program)
-            env = mk_env(pvars)
+            env = mk_env(pvars,var_types)
             env["types"]=var_types
             if ast_prog:
                 post_id, Q_values,templete = sketch_verify(P, ast_prog, Q, env,linv=linv,global_env=env)
@@ -428,7 +443,9 @@ if __name__ == '__main__':
     #TODO: need to handle And of Z3 in examples
     # P = lambda d: And(d['t'] == 0,d['x'] == 2,d['y'] == 2)
     # Q = lambda d: And(d['t'] == 4,d['x'] == 2,d['y'] == 2)
-    P = lambda d: And(And(d['t'] == 0,d['x'] == 2),d['y'] == 2)
-    Q = lambda d: And(And(d['t'] == 4,d['x'] == 2),d['y'] == 2)
-    verify(P, ast_program, Q,pvars, linv=linv)
+    example1['P'] = lambda d: d['a'] == 'abc' and d['b'] == 'aaa' and d['sum'] == ''
+    example1['Q'] = lambda d: d['a'] == 'abc' and d['b'] == 'aaa' and d['sum'] == 'abcaaa'
+    P = lambda d: And(And(d['a'] == 'abc',d['b'] == 'aaa'),d['sum'] == '')
+    Q = lambda d: And(And(d['a'] == 'abc',d['b'] == 'aaa'),d['sum'] == 'abcaaa')
+    verify(P, ast_program, Q,pvars, linv=linv,env=env)
 

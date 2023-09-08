@@ -11,17 +11,49 @@ OP ->   +   |   -   |   *   |   /
 
 
 import ast
+import itertools
 from z3 import *
 from itertools import product
 # Define a dictionary to map AST operators to Z3 operators
-operators = {
+operators_old = {
     ast.Add: lambda x, y: x + y,
     ast.Sub: lambda x, y: x - y,
     ast.Mult: lambda x, y: x * y,
     ast.Div: lambda x, y: x / y,
     ast.Eq: lambda x, y: x == y
 }
+operators = {
+    "+": lambda x, y: x + y,
+    "-": lambda x, y: x - y,
+    "*": lambda x, y: x * y,
+    "/": lambda x, y: x / y,
+    "=": lambda x, y: x == y,
+    "concat": lambda x, y: x + y,
+    "indexof": lambda x, y: z3.IndexOf(x,y),
+    "len": lambda x: z3.Length(x)
+}
 
+def while_tree_to_z3(node, variables):
+    if node.root in operators:
+        if node.root == "len": # unary
+            arg = while_tree_to_z3(node.subtrees[0], variables)
+            operator_func = operators[node.root]
+            return operator_func(arg)
+        else: #binary
+            left = while_tree_to_z3(node.subtrees[0], variables)
+            right = while_tree_to_z3(node.subtrees[1], variables)
+            operator_func = operators[node.root]
+            return operator_func(left,right)
+    if node.root == 'id':
+        return while_tree_to_z3(node.subtrees[0], variables)
+    if node.root in variables:
+        return variables[node.root]
+        #its a num 
+    if "num" in node.root :
+        return Int(node.root)
+    if "string" in node.root:
+        return String(node.root)
+    print("here")
 # Define a recursive function to convert the AST to a Z3 formula
 def ast_to_z3(node, variables,free_vars=[]):
     if isinstance(node, ast.Compare):
