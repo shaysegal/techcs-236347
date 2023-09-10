@@ -1,0 +1,7 @@
+{
+    "program": "t := x * ??",
+    "linv": "lambda d: d['x'] >= 0",
+    "pvars": "['t', 'x']",
+    "P": ["lambda d: d['t'] == 0 and d['x'] == 2","lambda d: d['t'] == 0 and d['x'] == 3"],
+    "Q": ["lambda d: d['t'] == 6 and d['x'] == 2","lambda d: d['t'] == 9 and d['x'] == 3"]
+}

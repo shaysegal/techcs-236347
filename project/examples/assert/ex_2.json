@@ -1,0 +1,8 @@
+{
+    "program": "t := x * ?? + y ; assert t = x + y",
+    "linv": "lambda d: d['x'] >= 0",
+    "pvars": "['t', 'x', 'y']",
+    "var_types": "{'t': Int, 'x': Int, 'y': Int}"
+}
+
+
