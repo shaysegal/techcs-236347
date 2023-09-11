@@ -375,35 +375,17 @@ def get_assert_cond(program):
     for word in program.split():
         if word == "assert":
             return program.split("assert")[1].split(";")[0].strip()
-
-if __name__ == '__main__':
-    mode = 'PBE'
-    program =  "sum := ??"
-    linv = lambda d: d['y'] >= 0
-    pvars = ['a', 'sum']
-    #var_types={
-    #    'a':Int,
-    #    'b':Int,
-    #    'sum':Int
-    #}
-    var_types={
-        'a':String,
-        'sum':Int
-    }
+        
+def run_wp(program,linv,pvars,var_types,mode):
     examples =[]
     example1 = {}
-    #example1['P'] = lambda d: d['a'] == 3 and d['b'] == 4 and d['sum'] == 0
-    #example1['Q'] = lambda d: d['a'] == 3 and d['b'] == 4 and d['sum'] == 12
-    example1['P'] = lambda d: d['a'] == 'abc' and d['sum'] == 0
-    example1['Q'] = lambda d: d['a'] == 'abc' and d['sum'] == 3
+    example1['P'] = lambda d: d['a'] == 3 and d['b'] == 4 and d['sum'] == 0
+    example1['Q'] = lambda d: d['a'] == 3 and d['b'] == 4 and d['sum'] == 12
     examples.append(example1)
     example2 = {}
-    #example2['P'] = lambda d: d['a'] == 5 and d['b'] == 2 and d['sum'] == 0
-    #example2['Q'] = lambda d: d['a'] == 5 and d['b'] == 2 and d['sum'] == 10
-    example2['P'] = lambda d: d['a'] == 'abcd' and d['sum'] == 0
-    example2['Q'] = lambda d: d['a'] == 'abcd' and d['sum'] == 4
+    example2['P'] = lambda d: d['a'] == 5 and d['b'] == 2 and d['sum'] == 0
+    example2['Q'] = lambda d: d['a'] == 5 and d['b'] == 2 and d['sum'] == 10
     examples.append(example2) 
-    # find god_program
     if mode == 'Assert':
         ast_prog = WhileParser()(program)
         env = mk_env(pvars,var_types)
@@ -412,7 +394,6 @@ if __name__ == '__main__':
             assert_cond = get_assert_cond(program)
             post_id,templete_prog = get_sketch_program(ast_prog)
             god_program = send_to_synt_assert(assert_cond,post_id,templete_prog,env)
-            # TODO: check if pattern_to_remove is good for any case
             pattern_to_remove = r"assert \w+ = (\w+ [+\-*/] \w+)( [+\-*/] \w+)*( ;)?"
             program = re.sub(pattern_to_remove, "", program)
     else:
@@ -454,3 +435,83 @@ if __name__ == '__main__':
     #Q = lambda d: And(And(d['a'] == 'abc',d['b'] == 'aaa'),d['sum'] == 'abcaaa')
     verify(P, ast_program, Q,pvars, linv=linv,env=env)
 
+
+    
+
+# if __name__ == '__main__':
+    # mode = 'PBE'
+    # program =  "sum := ??"
+    # linv = lambda d: d['y'] >= 0
+    # pvars = ['a', 'sum']
+    # #var_types={
+    # #    'a':Int,
+    # #    'b':Int,
+    # #    'sum':Int
+    # #}
+    # var_types={
+    #     'a':String,
+    #     'sum':Int
+    # }
+    # examples =[]
+    # example1 = {}
+    # #example1['P'] = lambda d: d['a'] == 3 and d['b'] == 4 and d['sum'] == 0
+    # #example1['Q'] = lambda d: d['a'] == 3 and d['b'] == 4 and d['sum'] == 12
+    # example1['P'] = lambda d: d['a'] == 'abc' and d['sum'] == 0
+    # example1['Q'] = lambda d: d['a'] == 'abc' and d['sum'] == 3
+    # examples.append(example1)
+    # example2 = {}
+    # #example2['P'] = lambda d: d['a'] == 5 and d['b'] == 2 and d['sum'] == 0
+    # #example2['Q'] = lambda d: d['a'] == 5 and d['b'] == 2 and d['sum'] == 10
+    # example2['P'] = lambda d: d['a'] == 'abcd' and d['sum'] == 0
+    # example2['Q'] = lambda d: d['a'] == 'abcd' and d['sum'] == 4
+    # examples.append(example2) 
+    # # find god_program
+    # if mode == 'Assert':
+    #     ast_prog = WhileParser()(program)
+    #     env = mk_env(pvars,var_types)
+    #     env["types"]=var_types
+    #     if ast_prog:
+    #         assert_cond = get_assert_cond(program)
+    #         post_id,templete_prog = get_sketch_program(ast_prog)
+    #         god_program = send_to_synt_assert(assert_cond,post_id,templete_prog,env)
+    #         # TODO: check if pattern_to_remove is good for any case
+    #         pattern_to_remove = r"assert \w+ = (\w+ [+\-*/] \w+)( [+\-*/] \w+)*( ;)?"
+    #         program = re.sub(pattern_to_remove, "", program)
+    # else:
+    #     first_example = True
+    #     god_program = None
+    #     Q_values_store=[]
+    #     for idx,example in enumerate(examples):
+    #         P = example['P']
+    #         Q = example['Q']
+    #         ast_prog = WhileParser()(program)
+    #         env = mk_env(pvars,var_types)
+    #         env["types"]=var_types
+    #         if ast_prog:
+    #             post_id, Q_values,templete = sketch_verify(P, ast_prog, Q, env,linv=linv,global_env=env)
+    #             Q_values_store.append(Q_values)
+    #             if god_program :
+    #                 if not check_aginst_current_program(god_program,Q_values,post_id,env):
+    #                     god_program = send_to_synt_pbe(Q_values_store,post_id,env,templete)
+    #             else:
+    #                 #first check if current god_prog is 
+    #                 god_program = send_to_synt_pbe(Q_values_store,post_id,env,templete)
+                
+    #         else:
+    #             print(">> Invalid program.")
+
+    # if program.endswith('; '): program = program[-1::-1].replace('; ', '',1)[-1::-1]
+    # program = program.replace("??",god_program)
+    # ast_program = WhileParser()(program)
+    # print(f"The program is {program}")
+    # print(">> Verifying the following program:")
+    # #TODO: need to handle And of Z3 in examples
+    # # P = lambda d: And(d['t'] == 0,d['x'] == 2,d['y'] == 2)
+    # # Q = lambda d: And(d['t'] == 4,d['x'] == 2,d['y'] == 2)
+    # example1['P'] = lambda d: d['a'] == 'abc' and d['sum'] == 0
+    # example1['Q'] = lambda d: d['a'] == 'abc' and d['sum'] == 3
+    # P = lambda d: And(d['a'] == 'abc' , d['sum'] == 0)
+    # Q = lambda d: And(d['a'] == 'abc' , d['sum'] == 3)
+    # #P = lambda d: And(And(d['a'] == 'abc',d['b'] == 'aaa'),d['sum'] == '')
+    # #Q = lambda d: And(And(d['a'] == 'abc',d['b'] == 'aaa'),d['sum'] == 'abcaaa')
+    # verify(P, ast_program, Q,pvars, linv=linv,env=env)
