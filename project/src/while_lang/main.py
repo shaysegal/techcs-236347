@@ -4,6 +4,9 @@ import os
 import json
 import time
 from wp import run_wp
+import re
+import ast
+from top_down import ast_to_z3
 
 window = Window()
 curr_window = window.get_curr_window()
@@ -104,7 +107,9 @@ def run_assert_program_synth():
 
 def print_to_example(example_no,program,linv,pvars,P,Q):
     global curr_window,text_ex,text_prog
-    text_ex.insert("end", "Example No" + example_no.split('_')[1] + ":\n", "title")
+    if example_no != "User Input":
+        text_ex.insert("end", "Example No" + example_no.split('_')[1] + ":\n", "title")
+    else: text_ex.insert("end", example_no + ":\n", "title")
     text_ex.insert("end", "------------------------\n", "title")
     text_ex.insert("end", "Program: ", "title")
     text_ex.insert("end",program+"\n", "example")
@@ -114,7 +119,7 @@ def print_to_example(example_no,program,linv,pvars,P,Q):
     text_ex.insert("end",pvars+"\n", "example")
     if P == []:
         return
-    if len(P) > 1:
+    if len(P) > 1 and type(P) == list:
         for index, p in enumerate(P):
             text_ex.insert("end", "Input and Output No" + str(index+1) + ":\n", "title") 
             text_ex.insert("end", "P: ", "title")
@@ -146,7 +151,82 @@ def run(synthesizer_mode):
         elif(synthesizer_mode == 'ASSERT - As Part Of Program'): curr_window.perform_long_operation(lambda: run_assert_program_synth(), '-OPERATION DONE-')
     else: sg.popup_quick_message("Running right now\nPlease wait until finish running the program",auto_close_duration=3)
 
+def run_pbe_simple_synth_user(program,linv,pvars,P,Q):
+    run_wp(program,linv,pvars,[],P,Q,text_prog,mode="PBE")
+def run_pbe_program_synth_user(program,linv,pvars,P,Q):
+    run_wp(program,linv,pvars,[],P,Q,text_prog,mode="PBE")
+def run_assert_simple_synth_user(program,linv,pvars,P,Q):
+    run_wp(program,linv,pvars,[],[],text_prog,mode="ASSERT")
+def run_assert_program_synth_user(program,linv,pvars,P,Q):
+    run_wp(program,linv,pvars,[],[],text_prog,mode="ASSERT")
 
+
+def make_lambda(str_cond):
+    # Define a mapping for comparison operators
+    operator_mapping = {
+        '<': lambda x, y: x < y,
+        '<=': lambda x, y: x <= y,
+        '>': lambda x, y: x > y,
+        '>=': lambda x, y: x >= y,
+        '!=': lambda x, y: x != y,
+        '==': lambda x, y: x == y,
+    }
+
+    # Parse the string condition into an abstract syntax tree (AST)
+    parsed_condition = ast.parse(str_cond, mode='eval').body
+
+    # Define a function to recursively traverse the AST and generate the lambda function
+    def generate_lambda(node):
+        if isinstance(node, ast.BoolOp):
+            op = node.op
+            left_lambda = generate_lambda(node.values[0])
+            right_lambda = generate_lambda(node.values[1])
+            return lambda d: op(left_lambda(d), right_lambda(d))
+        elif isinstance(node, ast.Compare):
+            left = node.left
+            ops = node.ops
+            comparators = node.comparators
+            assert len(ops) == 1 and len(comparators) == 1
+            operator = operator_mapping[ops[0].__class__.__name__]
+            left_var = left.id
+            right_value = comparators[0].n
+            return lambda d: operator(d[left_var], right_value)
+        else:
+            raise ValueError(f"Unsupported AST node type: {type(node).__name__}")
+
+    # Generate and return the lambda function
+    lambda_func = generate_lambda(parsed_condition)
+    return lambda_func
+
+def process_input(program,linv,pvars,P,Q):
+    raise NotImplemented
+    return program,linv,pvars,P,Q
+def run_user_synth(program,linv,pvars,P,Q,synthesizer_mode):
+    global curr_window, working_wp,text_ex,text_prog
+    text_ex = curr_window["-INPUT_PROG-"].Widget
+    text_ex.tag_config("example", foreground="orange")
+    text_ex.tag_config("title", foreground="white")
+    text_prog = curr_window["-OUT_PROG-"].Widget
+    text_prog.tag_config("program", foreground="cyan")
+    text_prog.tag_config("title", foreground="white")
+    program,linv,pvars,P,Q = process_input(program,linv,pvars,P,Q)
+    if not working_wp:
+        working_wp = True
+        if(synthesizer_mode == 'PBE - Simple'): curr_window.perform_long_operation(lambda: run_pbe_simple_synth_user(program,linv,pvars,P,Q), '-OPERATION DONE-')
+        elif(synthesizer_mode == 'PBE - As Part Of Program'): curr_window.perform_long_operation(lambda: run_pbe_simple_synth_user(program,linv,pvars,P,Q), '-OPERATION DONE-')
+        elif(synthesizer_mode == 'ASSERT - Simple'): curr_window.perform_long_operation(lambda: run_pbe_simple_synth_user(program,linv,pvars,P,Q), '-OPERATION DONE-')
+        elif(synthesizer_mode == 'ASSERT - As Part Of Program'): curr_window.perform_long_operation(lambda: run_pbe_simple_synth_user(program,linv,pvars,P,Q), '-OPERATION DONE-')
+    else: sg.popup_quick_message("Running right now\nPlease wait until finish running the program",auto_close_duration=3)
+    print_to_example("User Input",program,linv,pvars,P,Q)
+    # run_wp(program,linv,pvars,vars_type,P,Q,text_prog,mode="PBE")
+
+def check_input(program,linv,pvars,P,Q):
+    if program == "" or linv == "" or pvars == "" or P == "" or Q == "": return True
+    try: eval(pvars)
+    except: return True
+    if type(eval(pvars)) != list: return True
+    # if type(eval(P)) != list or type(eval(Q)) != list: return True
+    return False
 
 def process_user_input():
     global window,curr_window,working_wp
@@ -170,6 +250,35 @@ def process_user_input():
         elif event == "User Input":
             curr_window.close()
             curr_window = window.set_layout(window.get_user_layout())
+        elif event == "Synth Program":
+            if not working_wp:
+                synthesizer_mode = values["-SYNTH_MODE-"]
+                program = values["-INPUT_PROG-"]
+                linv = values["-LINV-"]
+                pvars = values["-PVARS-"]
+                P = values["-P-"]
+                Q = values["-Q-"]
+                # vars_type = values["-VARS_TYPE-"]
+                if check_input(program,linv,pvars,P,Q):
+                    sg.popup_quick_message("Input Error!\nPlease read again the Documentation and try again",auto_close_duration=4)
+                else:
+                    run_user_synth(program,linv,pvars,P,Q,synthesizer_mode)
+            else: sg.popup_quick_message("Running right now\nPlease wait until finish running the program",auto_close_duration=3)
+        elif event == "Reset ALL":
+            curr_window["-INPUT_PROG-"].update("")
+            curr_window["-OUT_PROG-"].update("")
+            curr_window["-LINV-"].update("")
+            curr_window["-PVARS-"].update("")
+            curr_window["-P-"].update("")
+            curr_window["-Q-"].update("")
+        elif event == "Reset":
+            curr_window["-INPUT_PROG-"].update("")
+            curr_window["-OUT_PROG-"].update("")
+        elif event == "Documentation":
+            curr_window.close()
+            curr_window = window.set_layout(window.get_documentation_layout())
+            # curr_window["-DOCS-"].update(window.get_documentation_text())
+
         elif event == "Main Menu":
             curr_window.close()
             curr_window = window.set_layout(window.get_main_layout())
