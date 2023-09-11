@@ -403,7 +403,6 @@ def run_wp(program,linv,pvars,var_types,P,Q,text_prog,mode):
     examples =[]
     for p,q in zip(P,Q):
         example ={}
-        #TODO: problem with converting string lambda func back to lambda func
         example['P'] = eval(p)
         example['Q'] = eval(q)
         examples.append(example)
@@ -447,17 +446,8 @@ def run_wp(program,linv,pvars,var_types,P,Q,text_prog,mode):
     text_prog.insert("end", "Verifying the following program:\n", "title")
     text_prog.insert("end",program+"\n", "program")
     text_prog.insert("end","-----------------------------\n", "title")
-    #TODO: need to handle And of Z3 in examples
-    # P = lambda d: And(d['t'] == 0,d['x'] == 2,d['y'] == 2)
-    # Q = lambda d: And(d['t'] == 4,d['x'] == 2,d['y'] == 2)
-    #example1['P'] = lambda d: d['a'] == 'abc' and d['sum'] == 0
     P=eval(convert_to_z3_expression(re.split('lambda \w\: ?', p)[1]))
     Q=eval(convert_to_z3_expression(re.split('lambda \w\: ?', q)[1]))
-    #example1['Q'] = lambda d: d['a'] == 'abc' and d['sum'] == 3
-    #P = lambda d: And(d['a'] == 'abc' , d['sum'] == 0)
-    #Q = lambda d: And(d['a'] == 'abc' , d['sum'] == 3)
-    #P = lambda d: And(And(d['a'] == 'abc',d['b'] == 'aaa'),d['sum'] == '')
-    #Q = lambda d: And(And(d['a'] == 'abc',d['b'] == 'aaa'),d['sum'] == 'abcaaa')
     verify(P, ast_program, Q,pvars, linv=linv,env=env,text_prog=text_prog)
 
 

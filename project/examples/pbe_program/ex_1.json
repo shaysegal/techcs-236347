@@ -1,8 +1,8 @@
 {
     "program": "z := 1 ; while z < j do ( w := w * ?? ; if (w % z) == 0 then z := z + 2 else skip )",
     "linv": "lambda d: d['j'] <= 10",
-    "pvars": ["w", "z", "j"],
-    "vars_type": {"w": "Int", "z": "Int", "j": "Int"},
+    "pvars": "['w', 'z', 'j']",
+    "vars_type": "{'w': 'Int', 'z': 'Int', 'j': 'Int'}",
     "P": ["lambda d: d['w'] == 4 and d['z'] == 1 and d['j'] == 5"],
     "Q": ["lambda d: d['w'] == 16 and d['z'] == 3 and d['j'] == 5"]
 }

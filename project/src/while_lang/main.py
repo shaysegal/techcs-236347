@@ -17,7 +17,6 @@ ASSERT_SIMPLE_DICT = 'examples/assert_simple/'
 ASSERT_PROGRAM_DICT = 'examples/assert_program/'
 
 
-
 def read_jsons_from_dir(directory_path):
     data_dict = {}
     for root, dirs, files in os.walk(directory_path):
@@ -199,8 +198,10 @@ def make_lambda(str_cond):
     return lambda_func
 
 def process_input(program,linv,pvars,P,Q):
+    #TODO need to implement
     raise NotImplemented
     return program,linv,pvars,P,Q
+
 def run_user_synth(program,linv,pvars,P,Q,synthesizer_mode):
     global curr_window, working_wp,text_ex,text_prog
     text_ex = curr_window["-INPUT_PROG-"].Widget
@@ -242,7 +243,6 @@ def process_user_input():
                 curr_window["-OUT_EXAMPLE-"].update("")
                 curr_window["-OUT_PROG-"].update("")
                 run(synthesizer_mode)
-                synthesizer_mode = values["-SYNTH_MODE-"]
             else: sg.popup_quick_message("Running right now\nPlease wait until finish running the program",auto_close_duration=3)
         elif event == "Run Through Examples":
             curr_window.close()
