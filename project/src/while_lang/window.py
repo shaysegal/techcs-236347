@@ -69,10 +69,10 @@ class Window:
         [sg.Text("Please Enter Synth Mode: ",font=("Comic Sans MS",18)), sg.Combo(key="-SYNTH_MODE-" ,values=["PBE - Simple","PBE - As Part Of Program","ASSERT - Simple","ASSERT - As Part Of Program"], default_value="PBE - Simple",font=("Comic Sans MS",16))],
         [sg.T("")],
         [sg.Button("Go",font=("Comic Sans MS",18),size=(6,1))]]
-        col_inputs = [[sg.Text("Pvars: ",font=("Comic Sans MS",14)), sg.Input(key="-PVARS-" ,change_submits=True,font=("Comic Sans MS",10),size=(70,1))],
-                    [sg.Text("Linv:   ",font=("Comic Sans MS",14)), sg.Input(key="-LINV-" ,change_submits=True,font=("Comic Sans MS",10),size=(70,1))],
-                    [sg.Text("P:       ",font=("Comic Sans MS",14)), sg.Input(key="-P-" ,change_submits=True,font=("Comic Sans MS",10),size=(70,1))],
-                    [sg.Text("Q:      ",font=("Comic Sans MS",14)), sg.Input(key="-Q-" ,change_submits=True,font=("Comic Sans MS",10),size=(70,1))],
+        col_inputs = [[sg.Text("Pvars: ",font=("Comic Sans MS",14)), sg.Input(key="-PVARS-" ,change_submits=True,font=("Comic Sans MS",12),size=(70,1))],
+                    [sg.Text("Linv:   ",font=("Comic Sans MS",14)), sg.Input(key="-LINV-" ,change_submits=True,font=("Comic Sans MS",12),size=(70,1))],
+                    [sg.Text("P:       ",font=("Comic Sans MS",14)), sg.Input(key="-P-" ,change_submits=True,font=("Comic Sans MS",12),size=(70,1))],
+                    [sg.Text("Q:      ",font=("Comic Sans MS",14)), sg.Input(key="-Q-" ,change_submits=True,font=("Comic Sans MS",12),size=(70,1))],
                     [sg.Text("Program: ",font=("Comic Sans MS",14)), sg.Multiline(key="-PROGRAM-" ,size=(50,5),reroute_stdout=False,autoscroll=True,font=("Comic Sans MS",12),text_color="yellow")]]
 
         col_programs = [[sg.Text("Programs:", font=("Comic Sans MS", 16))],
