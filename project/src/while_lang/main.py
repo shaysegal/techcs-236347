@@ -43,7 +43,7 @@ def read_jsons_from_dir(directory_path):
 pbe_simple_dict = read_jsons_from_dir(PBE_SIMPLE_DICT)
 pbe_program_dict = read_jsons_from_dir(PBE_PROGRAM_DICT)
 assert_simple_dict = read_jsons_from_dir(ASSERT_SIMPLE_DICT)
-# assert_program_dict = read_jsons_from_dir(ASSERT_PROGRAM_DICT)
+assert_program_dict = read_jsons_from_dir(ASSERT_PROGRAM_DICT)
 
 working_wp = False
 
@@ -86,10 +86,20 @@ def run_assert_simple_synth():
     vars_type = example['vars_type']
     print_to_example(first_key,program,linv,pvars,[],[])
     run_wp(program,linv,pvars,vars_type,[],[],text_prog,mode="ASSERT")
+    working_wp = False
 
 
 def run_assert_program_synth():
-    raise NotImplementedError
+    global curr_window,text_ex,text_prog,working_wp,assert_program_dict
+    first_key = next(iter(assert_program_dict.keys()))
+    example = assert_program_dict.pop(first_key)
+    program = example['program']
+    linv = example['linv']
+    pvars = example['pvars']
+    vars_type = example['vars_type']
+    print_to_example(first_key,program,linv,pvars,[],[])
+    run_wp(program,linv,pvars,vars_type,[],[],text_prog,mode="ASSERT")
+    working_wp = False
 
 
 def print_to_example(example_no,program,linv,pvars,P,Q):
