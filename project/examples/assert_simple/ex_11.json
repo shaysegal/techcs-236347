@@ -1,0 +1,6 @@
+{
+    "program": "cube := h * h * h - ?? ; assert cube = h * h * h - 1",
+    "linv": "lambda d: d['h'] < 200",
+    "pvars": ["h", "cube"],
+    "vars_type": {"h": "Int", "cube": "Int"}
+}

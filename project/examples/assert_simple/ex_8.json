@@ -1,0 +1,6 @@
+{
+    "program": "modulus := e % ?? ; assert modulus = e % 2",
+    "linv": "lambda d: d['e'] > 0",
+    "pvars": ["e", "modulus"],
+    "vars_type": {"e": "Int", "modulus": "Int"}
+}

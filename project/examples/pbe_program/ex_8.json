@@ -1,0 +1,8 @@
+{
+    "program": "r := 2 ; while r < s do ( t := t + ?? ; if (t - r) > 10 then r := r + 2 else skip )",
+    "linv": "lambda d: d['s'] > 0",
+    "pvars": ["r", "t", "s"],
+    "vars_type": {"r": "Int", "t": "Int", "s": "Int"},
+    "P": ["lambda d: d['r'] == 2 and d['t'] == 5 and d['s'] == 9"],
+    "Q": ["lambda d: d['r'] == 4 and d['t'] == 7 and d['s'] == 9"]
+}

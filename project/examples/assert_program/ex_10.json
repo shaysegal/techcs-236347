@@ -1,0 +1,6 @@
+{
+    "program": "x := 0 ; while x < y do ( z := z - ?? ; assert z = y - x )",
+    "linv": "lambda d: d['y'] >= 10",
+    "pvars": ["x", "z", "y"],
+    "vars_type": {"x": "Int", "z": "Int", "y": "Int"}
+}

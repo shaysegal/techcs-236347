@@ -1,8 +1,8 @@
 {
-    "program": "sum := ??",
-    "linv": "lambda d: d['y'] >= 0",
-    "pvars": "['a', 'b', 'sum']",
-    "vars_type": "{'a': 'Int', 'b': 'Int', 'sum': 'Int'}",
-    "P": ["lambda d: d['a'] == 3 and d['b'] == 4 and d['sum'] == 0","lambda d: d['a'] == 5 and d['b'] == 2 and d['sum'] == 0"],
-    "Q": ["lambda d: d['a'] == 3 and d['b'] == 4 and d['sum'] == 12","lambda d: d['a'] == 5 and d['b'] == 2 and d['sum'] == 10"]
+    "program": "z := 1 ; while z < j do ( w := w * ?? ; if (w % z) == 0 then z := z + 2 else skip )",
+    "linv": "lambda d: d['j'] <= 10",
+    "pvars": ["w", "z", "j"],
+    "vars_type": {"w": "Int", "z": "Int", "j": "Int"},
+    "P": ["lambda d: d['w'] == 4 and d['z'] == 1 and d['j'] == 5"],
+    "Q": ["lambda d: d['w'] == 16 and d['z'] == 3 and d['j'] == 5"]
 }

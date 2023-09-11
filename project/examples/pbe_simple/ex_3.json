@@ -1,8 +1,8 @@
 {
-    "program": "t := x * ??",
-    "linv": "lambda d: d['x'] >= 0",
-    "pvars": "['t', 'x']",
-    "vars_type": "{'t': 'Int', 'x': 'Int'}",
-    "P": ["lambda d: d['t'] == 0 and d['x'] == 2","lambda d: d['t'] == 0 and d['x'] == 3"],
-    "Q": ["lambda d: d['t'] == 6 and d['x'] == 2","lambda d: d['t'] == 9 and d['x'] == 3"]
+    "program": "sum := a + b + ??",
+    "linv": "lambda d: d['y'] >= 0",
+    "pvars": ["a", "b", "sum"],
+    "vars_type": {"a": "Int", "b": "Int", "sum": "Int"},
+    "P": ["lambda d: d['a'] == 3 and d['b'] == 4 and d['sum'] == 0"],
+    "Q": ["lambda d: d['a'] == 3 and d['b'] == 4 and d['sum'] == 10"]
 }

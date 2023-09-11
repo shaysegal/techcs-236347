@@ -1,0 +1,6 @@
+{
+    "program": "u := 4 ; while u < v do ( w := w * ?? ; assert w = v * u )",
+    "linv": "lambda d: d['v'] <= 25",
+    "pvars": ["u", "w", "v"],
+    "vars_type": {"u": "Int", "w": "Int", "v": "Int"}
+}

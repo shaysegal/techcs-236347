@@ -1,8 +1,8 @@
 {
-    "program": "t := x * ??",
-    "linv": "lambda d: d['x'] >= 0",
-    "pvars": "['t', 'x']",
-    "vars_type": "{'t': 'Int', 'x': 'Int'}",
-    "P": ["lambda d: d['t'] == 0 and d['x'] == 2","lambda d: d['t'] == 0 and d['x'] == 3"],
-    "Q": ["lambda d: d['t'] == 6 and d['x'] == 2","lambda d: d['t'] == 9 and d['x'] == 3"]
+    "program": "c := 0 ; while c < l do ( d := d * ?? ; if (d - c) < 20 then c := c + 4 else skip )",
+    "linv": "lambda d: d['l'] > 0",
+    "pvars": ["c", "d", "l"],
+    "vars_type": {"c": "Int", "d": "Int", "l": "Int"},
+    "P": ["lambda d: d['c'] == 0 and d['d'] == 3 and d['l'] == 8"],
+    "Q": ["lambda d: d['c'] == 4 and d['d'] == 6 and d['l'] == 8"]
 }

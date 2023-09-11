@@ -1,8 +1,6 @@
 {
-    "program": "t := x * ?? + y ; assert t = x + y",
-    "linv": "lambda d: d['x'] >= 0",
-    "pvars": "['t', 'x', 'y']",
-    "vars_type": "{'t': Int, 'x': Int, 'y': Int}"
+    "program": "z := 1 ; while z < j do ( w := w * ?? ; assert w = z * j )",
+    "linv": "lambda d: d['j'] >= 0",
+    "pvars": ["w", "z", "j"],
+    "vars_type": {"w": "Int", "z": "Int", "j": "Int"}
 }
-
-

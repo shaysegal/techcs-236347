@@ -1,0 +1,6 @@
+{
+    "program": "division := d / ?? ; assert division = d / 2",
+    "linv": "lambda d: d['d'] != 0",
+    "pvars": ["d", "division"],
+    "vars_type": {"d": "Int", "division": "Int"}
+}

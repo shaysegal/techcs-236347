@@ -1,0 +1,8 @@
+{
+    "program": "cube := n * n * n - ??",
+    "linv": "lambda d: d['s'] < 200",
+    "pvars": ["n", "cube"],
+    "vars_type": {"n": "Int", "cube": "Int"},
+    "P": ["lambda d: d['n'] == 3 and d['cube'] == 0"],
+    "Q": ["lambda d: d['n'] == 3 and d['cube'] == 24"]
+}

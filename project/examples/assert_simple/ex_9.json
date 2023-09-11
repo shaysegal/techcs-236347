@@ -1,0 +1,6 @@
+{
+    "program": "power := f ** ?? ; assert power = f ** 2",
+    "linv": "lambda d: d['f'] < 100",
+    "pvars": ["f", "power"],
+    "vars_type": {"f": "Int", "power": "Int"}
+}

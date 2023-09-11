@@ -1,0 +1,8 @@
+{
+    "program": "x := 0 ; while x < y do ( z := z - ?? ; if (z + x) < 30 then x := x + 5 else skip )",
+    "linv": "lambda d: d['y'] >= 10",
+    "pvars": ["x", "z", "y"],
+    "vars_type": {"x": "Int", "z": "Int", "y": "Int"},
+    "P": ["lambda d: d['x'] == 0 and d['z'] == 35 and d['y'] == 15"],
+    "Q": ["lambda d: d['x'] == 5 and d['z'] == 30 and d['y'] == 15"]
+}

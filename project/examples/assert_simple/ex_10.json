@@ -1,0 +1,6 @@
+{
+    "program": "square := g * g + ?? ; assert square = g * g + 1",
+    "linv": "lambda d: d['g'] <= 50",
+    "pvars": ["g", "square"],
+    "vars_type": {"g": "Int", "square": "Int"}
+}

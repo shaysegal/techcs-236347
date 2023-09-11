@@ -1,0 +1,8 @@
+{
+    "program": "power := k ** l ** ??",
+    "linv": "lambda d: d['u'] < 100",
+    "pvars": ["k", "l", "power"],
+    "vars_type": {"k": "Int", "l": "Int", "power": "Int"},
+    "P": ["lambda d: d['k'] == 2 and d['l'] == 3 and d['power'] == 0"],
+    "Q": ["lambda d: d['k'] == 2 and d['l'] == 3 and d['power'] == 64"]
+}

@@ -1,0 +1,8 @@
+{
+    "program": "u := 4 ; while u < v do ( w := w * ?? ; if (w % u) == 3 then u := u + 3 else skip )",
+    "linv": "lambda d: d['v'] <= 25",
+    "pvars": ["u", "w", "v"],
+    "vars_type": {"u": "Int", "w": "Int", "v": "Int"},
+    "P": ["lambda d: d['u'] == 4 and d['w'] == 6 and d['v'] == 16"],
+    "Q": ["lambda d: d['u'] == 7 and d['w'] == 12 and d['v'] == 16"]
+}

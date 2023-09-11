@@ -1,0 +1,6 @@
+{
+    "program": "r := 2 ; while r < s do ( t := t + ?? ; assert t = s + r )",
+    "linv": "lambda d: d['s'] > 0",
+    "pvars": ["r", "t", "s"],
+    "vars_type": {"r": "Int", "t": "Int", "s": "Int"}
+}

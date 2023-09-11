@@ -1,0 +1,8 @@
+{
+    "program": "p := 3 ; while p < o do ( q := q * ?? ; if (q + p) < 40 then p := p + 4 else skip )",
+    "linv": "lambda d: d['o'] <= 20",
+    "pvars": ["p", "q", "o"],
+    "vars_type": {"p": "Int", "q": "Int", "o": "Int"},
+    "P": ["lambda d: d['p'] == 3 and d['q'] == 4 and d['o'] == 12"],
+    "Q": ["lambda d: d['p'] == 7 and d['q'] == 8 and d['o'] == 12"]
+}

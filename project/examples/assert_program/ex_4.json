@@ -1,0 +1,6 @@
+{
+    "program": "c := 0 ; while c < l do ( d := d * ?? ; assert d = l * c )",
+    "linv": "lambda d: d['l'] > 0",
+    "pvars": ["c", "d", "l"],
+    "vars_type": {"c": "Int", "d": "Int", "l": "Int"}
+}

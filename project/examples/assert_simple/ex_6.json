@@ -1,0 +1,6 @@
+{
+    "program": "difference := c - ?? ; assert difference = c - 1",
+    "linv": "lambda d: d['c'] <= 10",
+    "pvars": ["c", "difference"],
+    "vars_type": {"c": "Int", "difference": "Int"}
+}

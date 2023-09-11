@@ -1,0 +1,6 @@
+{
+    "program": "negate := -j + ?? ; assert negate = -j - 1",
+    "linv": "lambda d: d['j'] <= 0",
+    "pvars": ["j", "negate"],
+    "vars_type": {"j": "Int", "negate": "Int"}
+}
