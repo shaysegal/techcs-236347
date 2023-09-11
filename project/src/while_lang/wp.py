@@ -376,7 +376,7 @@ def get_assert_cond(program):
         if word == "assert":
             return program.split("assert")[1].split(";")[0].strip()
         
-def run_wp(program,linv,pvars,var_types,mode):
+def run_wp(program,linv,pvars,var_types,P,Q,mode):
     examples =[]
     example1 = {}
     example1['P'] = lambda d: d['a'] == 3 and d['b'] == 4 and d['sum'] == 0
