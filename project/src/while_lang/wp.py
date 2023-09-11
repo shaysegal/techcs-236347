@@ -377,7 +377,7 @@ def get_assert_cond(program):
             return program.split("assert")[1].split(";")[0].strip()
         
 def run_wp(program,linv,pvars,var_types,P,Q,text_prog,mode):
-    text_prog.insert("end", "Running...:\n", "program")
+    text_prog.insert("end", "Start Running...:\n", "program")
     pvars = eval(pvars)
     linv = eval(linv)
     var_types = eval(var_types)
