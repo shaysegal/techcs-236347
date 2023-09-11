@@ -159,7 +159,7 @@ def process_user_input():
             curr_window = window.set_layout(window.get_examples_layout())
         elif event == "User Input":
             curr_window.close()
-            curr_window = window.set_layout(window.get_examples_layout())
+            curr_window = window.set_layout(window.get_user_layout())
         elif event == "Main Menu":
             curr_window.close()
             curr_window = window.set_layout(window.get_main_layout())
