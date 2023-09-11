@@ -46,7 +46,7 @@ working_wp = False
 
 
 def run_pbe_simple_synth():
-    global curr_window,text_ex,text_prog,working_wp,pbe_simple_dict
+    global curr_window,text_ex,text_prog,working_wp,pbe_simple_dict,text_prog,text_ex
     # text_prog.insert("end", "Program:\n", "program")
     first_key = next(iter(pbe_simple_dict.keys()))
     example = pbe_simple_dict.pop(first_key)
@@ -57,7 +57,7 @@ def run_pbe_simple_synth():
     Q = example['Q']
     vars_type = example['vars_type']
     print_to_example(program,linv,pvars,P,Q)
-    run_wp(program,linv,pvars,vars_type,P,Q,mode="PBE")
+    run_wp(program,linv,pvars,vars_type,P,Q,text_prog,mode="PBE")
     working_wp = False
 
 def print_to_example(program,linv,pvars,P,Q):
@@ -91,6 +91,7 @@ def run(synthesizer_mode):
     text_ex.tag_config("title", foreground="white")
     text_prog = curr_window["-OUT_PROG-"].Widget
     text_prog.tag_config("program", foreground="cyan")
+    text_prog.tag_config("title", foreground="white")
     if not working_wp:
         working_wp = True
         if(synthesizer_mode == 'PBE - Simple'): curr_window.perform_long_operation(lambda: run_pbe_simple_synth(), '-OPERATION DONE-')

@@ -315,7 +315,7 @@ def sketch_verify(P, ast, Q, env ,linv,global_env):
 
 
 
-def verify(P, ast, Q, pvars,linv=None,env=None):
+def verify(P, ast, Q, pvars,linv=None,env=None,text_prog=None):
     """
     Verifies a Hoare triple {P} c {Q}
     Where P, Q are assertions (see below for examples)
@@ -332,10 +332,10 @@ def verify(P, ast, Q, pvars,linv=None,env=None):
     sol.add(Not(formula))
     status = sol.check()
     if status == sat:
-        print(">> Invalid.")
+        text_prog.insert("end", ">> Invalid.\n", "title")
         m = sol.model()
         return False , m
-    print(">> Valid.")
+    text_prog.insert("end", ">> Valid.\n", "title")
     return True ,None 
 
     # ...
@@ -376,16 +376,23 @@ def get_assert_cond(program):
         if word == "assert":
             return program.split("assert")[1].split(";")[0].strip()
         
-def run_wp(program,linv,pvars,var_types,P,Q,mode):
+def run_wp(program,linv,pvars,var_types,P,Q,text_prog,mode):
+    text_prog.insert("end", "Running...:\n", "program")
+    pvars = eval(pvars)
+    linv = eval(linv)
+    var_types = eval(var_types)
+    for key,var in var_types.items():
+        if var == "Int":
+            var_types[key] = Int
+        if var == "String":
+            var_types[key] = String
     examples =[]
-    example1 = {}
-    example1['P'] = lambda d: d['a'] == 3 and d['b'] == 4 and d['sum'] == 0
-    example1['Q'] = lambda d: d['a'] == 3 and d['b'] == 4 and d['sum'] == 12
-    examples.append(example1)
-    example2 = {}
-    example2['P'] = lambda d: d['a'] == 5 and d['b'] == 2 and d['sum'] == 0
-    example2['Q'] = lambda d: d['a'] == 5 and d['b'] == 2 and d['sum'] == 10
-    examples.append(example2) 
+    for p,q in zip(P,Q):
+        example ={}
+        #TODO: problem with converting string lambda func back to lambda func
+        example['P'] = eval(p)
+        example['Q'] = eval(q)
+        examples.append(example)
     if mode == 'Assert':
         ast_prog = WhileParser()(program)
         env = mk_env(pvars,var_types)
@@ -403,6 +410,8 @@ def run_wp(program,linv,pvars,var_types,P,Q,mode):
         for idx,example in enumerate(examples):
             P = example['P']
             Q = example['Q']
+            source_code = inspect.getsource(P)
+            print(source_code)
             ast_prog = WhileParser()(program)
             env = mk_env(pvars,var_types)
             env["types"]=var_types
@@ -422,8 +431,9 @@ def run_wp(program,linv,pvars,var_types,P,Q,mode):
     if program.endswith('; '): program = program[-1::-1].replace('; ', '',1)[-1::-1]
     program = program.replace("??",god_program)
     ast_program = WhileParser()(program)
-    print(f"The program is {program}")
-    print(">> Verifying the following program:")
+    text_prog.insert("end", "Verifying the following program:\n", "title")
+    text_prog.insert("end",program+"\n", "program")
+    text_prog.insert("end","-----------------------------\n", "title")
     #TODO: need to handle And of Z3 in examples
     # P = lambda d: And(d['t'] == 0,d['x'] == 2,d['y'] == 2)
     # Q = lambda d: And(d['t'] == 4,d['x'] == 2,d['y'] == 2)
@@ -433,7 +443,7 @@ def run_wp(program,linv,pvars,var_types,P,Q,mode):
     Q = lambda d: And(d['a'] == 'abc' , d['sum'] == 3)
     #P = lambda d: And(And(d['a'] == 'abc',d['b'] == 'aaa'),d['sum'] == '')
     #Q = lambda d: And(And(d['a'] == 'abc',d['b'] == 'aaa'),d['sum'] == 'abcaaa')
-    verify(P, ast_program, Q,pvars, linv=linv,env=env)
+    verify(P, ast_program, Q,pvars, linv=linv,env=env,text_prog=text_prog)
 
 
     

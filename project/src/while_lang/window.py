@@ -23,10 +23,10 @@ class Window:
         [sg.Button("Go",font=("Comic Sans MS",18),size=(6,1))]]
 
         col_examples = [[sg.Text("Example:", font=("Comic Sans MS", 16))],
-        [sg.Multiline(key='-OUT_EXAMPLE-', size=(60, 15),reroute_stdout=True,autoscroll=True,font=("Comic Sans MS",12),text_color="yellow")]]
+        [sg.Multiline(key='-OUT_EXAMPLE-', size=(60, 15),reroute_stdout=False,autoscroll=True,font=("Comic Sans MS",12),text_color="yellow")]]
 
         col_programs = [[sg.Text("Programs:", font=("Comic Sans MS", 16))],
-        [sg.Multiline(key='-OUT_PROG-', size=(75, 15),reroute_stdout=True,autoscroll=True,font=("Comic Sans MS",12),text_color="yellow")]]
+        [sg.Multiline(key='-OUT_PROG-', size=(75, 15),reroute_stdout=False,autoscroll=True,font=("Comic Sans MS",12),text_color="yellow")]]
         
         examples_layout = [[sg.Column(col_mode, element_justification='c')],
                     [sg.T("")],
