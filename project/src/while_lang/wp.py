@@ -62,7 +62,7 @@ def extract_values_from_Q(Q,env):
     # values.update(env)
     # result = P(env)
     all_var_regx = "|".join(env.keys())
-    for arg in inspect.getsource(Q).split('and'):
+    for arg in Q.split('and'):#inspect.getsource(Q).split('and'):
         # if(arg.endswith('\n')):
         #     arg = arg[:-1] + ' '
         var,value = re.findall(f'd\[\'[{all_var_regx}]+\'\]==.+',arg.replace(" ",""))[0].split('==')
@@ -269,8 +269,8 @@ def sketch_verify(P, ast, Q, env ,linv,global_env):
             if ast.subtrees[1].root == "sketch":
                 template = "??"
                 post_id = ast.subtrees[0].subtrees[0].root
-                Q_values = extract_values_from_Q(Q,env)
-                return post_id, Q_values , template
+                #Q_values = extract_values_from_Q(Q,env)
+                return post_id, None , template
             if "??" in ast.subtrees[1].terminals:
                 #TODO: inorder tree walk to get program
                 template = ""
@@ -280,8 +280,8 @@ def sketch_verify(P, ast, Q, env ,linv,global_env):
                     template += " "
                 template = template[:-1]
                 post_id = ast.subtrees[0].subtrees[0].root
-                Q_values = extract_values_from_Q(Q,env)
-                return post_id, Q_values, template
+                #Q_values = extract_values_from_Q(Q,env)
+                return post_id, None, template
             v,expr = ast.subtrees
             e_at_x = upd(env,str(transform_cond(v,env)),transform_cond(expr,env))
             return Q(e_at_x)
@@ -375,6 +375,20 @@ def get_assert_cond(program):
     for word in program.split():
         if word == "assert":
             return program.split("assert")[1].split(";")[0].strip()
+
+
+def convert_to_z3_expression(py_expression):
+
+    # Split each 'or' token by 'and'
+    and_tokens = py_expression.split(' and ')
+    stack,rest = and_tokens[0],and_tokens[1:]
+    # Initialize an empty list for 'and' conditions in this 'or' token
+    # Combine 'and' conditions in this 'or' token using 'And'
+    for compare in rest:
+        stack = f'And( {stack}, {compare} )'
+    
+    return f"lambda d: {stack}"
+
         
 def run_wp(program,linv,pvars,var_types,P,Q,text_prog,mode):
     text_prog.insert("end", "Start Running...:\n", "program")
@@ -414,7 +428,8 @@ def run_wp(program,linv,pvars,var_types,P,Q,text_prog,mode):
             env = mk_env(pvars,var_types)
             env["types"]=var_types
             if ast_prog:
-                post_id, Q_values,templete = sketch_verify(P, ast_prog, Q, env,linv=linv,global_env=env)
+                Q_values=extract_values_from_Q(q,env)
+                post_id, _,templete = sketch_verify(P, ast_prog, Q, env,linv=linv,global_env=env)
                 Q_values_store.append(Q_values)
                 if god_program :
                     if not check_aginst_current_program(god_program,Q_values,post_id,env):
@@ -435,10 +450,12 @@ def run_wp(program,linv,pvars,var_types,P,Q,text_prog,mode):
     #TODO: need to handle And of Z3 in examples
     # P = lambda d: And(d['t'] == 0,d['x'] == 2,d['y'] == 2)
     # Q = lambda d: And(d['t'] == 4,d['x'] == 2,d['y'] == 2)
-    example1['P'] = lambda d: d['a'] == 'abc' and d['sum'] == 0
-    example1['Q'] = lambda d: d['a'] == 'abc' and d['sum'] == 3
-    P = lambda d: And(d['a'] == 'abc' , d['sum'] == 0)
-    Q = lambda d: And(d['a'] == 'abc' , d['sum'] == 3)
+    #example1['P'] = lambda d: d['a'] == 'abc' and d['sum'] == 0
+    P=eval(convert_to_z3_expression(re.split('lambda \w\: ?', p)[1]))
+    Q=eval(convert_to_z3_expression(re.split('lambda \w\: ?', q)[1]))
+    #example1['Q'] = lambda d: d['a'] == 'abc' and d['sum'] == 3
+    #P = lambda d: And(d['a'] == 'abc' , d['sum'] == 0)
+    #Q = lambda d: And(d['a'] == 'abc' , d['sum'] == 3)
     #P = lambda d: And(And(d['a'] == 'abc',d['b'] == 'aaa'),d['sum'] == '')
     #Q = lambda d: And(And(d['a'] == 'abc',d['b'] == 'aaa'),d['sum'] == 'abcaaa')
     verify(P, ast_program, Q,pvars, linv=linv,env=env,text_prog=text_prog)
