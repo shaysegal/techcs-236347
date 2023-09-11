@@ -1,9 +1,10 @@
 import PySimpleGUI as sg
-from window import Layout
+from window import Window
 import os
 import json
 
-window = Layout().getMainLayout()
+window = Window()
+curr_window = window.get_curr_window()
 
 def run_pbe_synth(file_path, synthesizer_mode):
     raise NotImplementedError
@@ -14,25 +15,32 @@ def run_assert_synth(file_path, synthesizer_mode):
 
 
 def process_user_input():
-    global window
+    global window,curr_window
    
-    event, values = window.read()
+    event, values = curr_window.read()
     while not (event == sg.WIN_CLOSED or event=="Exit"):
-        if event == "Submit":
-            file_path = values["-FILE-"]
+        if event == "Go":
+            file_path = values["-SYNTH_MODE-"]
             synthesizer_mode = values["-SYNTH_MODE-"]
-            if(synthesizer_mode == 'PBE'): run_pbe_synth(file_path, synthesizer_mode)
-            elif(synthesizer_mode == 'Assert'): run_assert_synth(file_path, synthesizer_mode)
-        event, values = window.read()
-    window.close()
+            if(synthesizer_mode == 'PBE - Simple'): run_pbe_synth(file_path, synthesizer_mode)
+            elif(synthesizer_mode == 'PBE - As Part Of Program'): run_assert_synth(file_path, synthesizer_mode)
+            elif(synthesizer_mode == 'ASSERT - Simple'): run_assert_synth(file_path, synthesizer_mode)
+            elif(synthesizer_mode == 'ASSERT - As Part Of Program'): run_assert_synth(file_path, synthesizer_mode)
+        elif event == "Run Through Examples":
+            curr_window.close()
+            curr_window = window.set_layout(window.get_examples_layout())
+        elif event == "User Input":
+            curr_window.close()
+            curr_window = window.set_layout(window.get_examples_layout())
+        elif event == "Main Menu":
+            curr_window.close()
+            curr_window = window.set_layout(window.get_main_layout())
+                
+        event, values = curr_window.read()
+    curr_window.close()
 
 if __name__ == '__main__':
-    # process_user_input()
-    # symbols = ['MSFT','NVDA']
-    # for sym in symbols:
-    #     pass
-
-    # Define the directory path where your JSON files are located
+    process_user_input()
     directory_path = 'examples/simple_pbe/'
 
     # Initialize an empty dictionary to store the data
@@ -58,13 +66,3 @@ if __name__ == '__main__':
                     P = json_data['P']
                     Q = json_data['Q']
                     
-                    # Store the data in the data_dict using a hierarchical structure
-                    data_dict.setdefault('examples', {}).setdefault('simple_pbe', {})[file] = {
-                        'program': program,
-                        'linv': linv,
-                        'pvars': pvars,
-                        'P': P,
-                        'Q': Q
-                    }
-
-            
