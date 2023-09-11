@@ -68,12 +68,12 @@ class Window:
         col_mode = [[sg.T("")],
         [sg.Text("Please Enter Synth Mode: ",font=("Comic Sans MS",18)), sg.Combo(key="-SYNTH_MODE-" ,values=["PBE - Simple","PBE - As Part Of Program","ASSERT - Simple","ASSERT - As Part Of Program"], default_value="PBE - Simple",font=("Comic Sans MS",16))],
         [sg.T("")],
-        [sg.Button("Go",font=("Comic Sans MS",18),size=(6,1))]]
+        [sg.Button("Synth Program",font=("Comic Sans MS",16),size=(12,1))]]
         col_inputs = [[sg.Text("Pvars: ",font=("Comic Sans MS",14)), sg.Input(key="-PVARS-" ,change_submits=True,font=("Comic Sans MS",12),size=(70,1))],
                     [sg.Text("Linv:   ",font=("Comic Sans MS",14)), sg.Input(key="-LINV-" ,change_submits=True,font=("Comic Sans MS",12),size=(70,1))],
                     [sg.Text("P:       ",font=("Comic Sans MS",14)), sg.Input(key="-P-" ,change_submits=True,font=("Comic Sans MS",12),size=(70,1))],
                     [sg.Text("Q:      ",font=("Comic Sans MS",14)), sg.Input(key="-Q-" ,change_submits=True,font=("Comic Sans MS",12),size=(70,1))],
-                    [sg.Text("Program: ",font=("Comic Sans MS",14)), sg.Multiline(key="-PROGRAM-" ,size=(50,5),reroute_stdout=False,autoscroll=True,font=("Comic Sans MS",12),text_color="yellow")]]
+                    [sg.Text("Program: ",font=("Comic Sans MS",14)), sg.Multiline(key="-INPUT_PROG-" ,size=(50,5),reroute_stdout=False,autoscroll=True,font=("Comic Sans MS",12),text_color="yellow")]]
 
         col_programs = [[sg.Text("Programs:", font=("Comic Sans MS", 16))],
         [sg.Multiline(key='-OUT_PROG-', size=(70, 15),reroute_stdout=False,autoscroll=True,font=("Comic Sans MS",12),text_color="yellow")]]
@@ -82,7 +82,7 @@ class Window:
                     [sg.T("")],
                     [sg.Column(col_inputs, element_justification='l'),sg.VSeperator(),sg.Column(col_programs, element_justification='l')],
                     [sg.T("")],
-                    [sg.Button("Next Example",size=(12,1),font=("Comic Sans MS",13))],
+                    [sg.Button("New Example",size=(12,1),font=("Comic Sans MS",13))],
                     [sg.T("")],
                     [sg.T("")],
                     [sg.T("")],

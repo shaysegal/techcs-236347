@@ -104,7 +104,9 @@ def run_assert_program_synth():
 
 def print_to_example(example_no,program,linv,pvars,P,Q):
     global curr_window,text_ex,text_prog
-    text_ex.insert("end", "Example No" + example_no.split('_')[1] + ":\n", "title")
+    if example_no != "User Input":
+        text_ex.insert("end", "Example No" + example_no.split('_')[1] + ":\n", "title")
+    else: text_ex.insert("end", example_no + ":\n", "title")
     text_ex.insert("end", "------------------------\n", "title")
     text_ex.insert("end", "Program: ", "title")
     text_ex.insert("end",program+"\n", "example")
@@ -114,7 +116,7 @@ def print_to_example(example_no,program,linv,pvars,P,Q):
     text_ex.insert("end",pvars+"\n", "example")
     if P == []:
         return
-    if len(P) > 1:
+    if len(P) > 1 and type(P) == list:
         for index, p in enumerate(P):
             text_ex.insert("end", "Input and Output No" + str(index+1) + ":\n", "title") 
             text_ex.insert("end", "P: ", "title")
@@ -146,6 +148,32 @@ def run(synthesizer_mode):
         elif(synthesizer_mode == 'ASSERT - As Part Of Program'): curr_window.perform_long_operation(lambda: run_assert_program_synth(), '-OPERATION DONE-')
     else: sg.popup_quick_message("Running right now\nPlease wait until finish running the program",auto_close_duration=3)
 
+def run_pbe_simple_synth_user(program,linv,pvars,P,Q):
+    run_wp(program,linv,pvars,[],P,Q,text_prog,mode="PBE")
+def run_pbe_program_synth_user(program,linv,pvars,P,Q):
+    run_wp(program,linv,pvars,[],P,Q,text_prog,mode="PBE")
+def run_assert_simple_synth_user(program,linv,pvars,P,Q):
+    run_wp(program,linv,pvars,[],[],text_prog,mode="ASSERT")
+def run_assert_program_synth_user(program,linv,pvars,P,Q):
+    run_wp(program,linv,pvars,[],[],text_prog,mode="ASSERT")
+    
+def run_user_synth(program,linv,pvars,P,Q,synthesizer_mode):
+    global curr_window, working_wp,text_ex,text_prog
+    text_ex = curr_window["-INPUT_PROG-"].Widget
+    text_ex.tag_config("example", foreground="orange")
+    text_ex.tag_config("title", foreground="white")
+    text_prog = curr_window["-OUT_PROG-"].Widget
+    text_prog.tag_config("program", foreground="cyan")
+    text_prog.tag_config("title", foreground="white")
+    if not working_wp:
+        working_wp = True
+        if(synthesizer_mode == 'PBE - Simple'): curr_window.perform_long_operation(lambda: run_pbe_simple_synth_user(program,linv,pvars,P,Q), '-OPERATION DONE-')
+        elif(synthesizer_mode == 'PBE - As Part Of Program'): curr_window.perform_long_operation(lambda: run_pbe_simple_synth_user(program,linv,pvars,P,Q), '-OPERATION DONE-')
+        elif(synthesizer_mode == 'ASSERT - Simple'): curr_window.perform_long_operation(lambda: run_pbe_simple_synth_user(program,linv,pvars,P,Q), '-OPERATION DONE-')
+        elif(synthesizer_mode == 'ASSERT - As Part Of Program'): curr_window.perform_long_operation(lambda: run_pbe_simple_synth_user(program,linv,pvars,P,Q), '-OPERATION DONE-')
+    else: sg.popup_quick_message("Running right now\nPlease wait until finish running the program",auto_close_duration=3)
+    print_to_example("User Input",program,linv,pvars,P,Q)
+    # run_wp(program,linv,pvars,vars_type,P,Q,text_prog,mode="PBE")
 
 
 def process_user_input():
@@ -170,6 +198,22 @@ def process_user_input():
         elif event == "User Input":
             curr_window.close()
             curr_window = window.set_layout(window.get_user_layout())
+        elif event == "Synth Program":
+            synthesizer_mode = values["-SYNTH_MODE-"]
+            program = values["-INPUT_PROG-"]
+            linv = values["-LINV-"]
+            pvars = values["-PVARS-"]
+            P = values["-P-"]
+            Q = values["-Q-"]
+            # vars_type = values["-VARS_TYPE-"]
+            if program == "" or linv == "" or pvars == "" or P == "" or Q == "":
+                sg.popup_quick_message("Please fill all the fields",auto_close_duration=3)
+            else:
+                run_user_synth(program,linv,pvars,P,Q,synthesizer_mode)
+        elif event == "Documentation":
+            curr_window.close()
+            curr_window = window.set_layout(window.get_documentation_layout())
+
         elif event == "Main Menu":
             curr_window.close()
             curr_window = window.set_layout(window.get_main_layout())

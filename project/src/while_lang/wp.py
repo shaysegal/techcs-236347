@@ -435,8 +435,8 @@ def run_wp(program,linv,pvars,var_types,P,Q,text_prog,mode):
     #TODO: need to handle And of Z3 in examples
     # P = lambda d: And(d['t'] == 0,d['x'] == 2,d['y'] == 2)
     # Q = lambda d: And(d['t'] == 4,d['x'] == 2,d['y'] == 2)
-    example1['P'] = lambda d: d['a'] == 'abc' and d['sum'] == 0
-    example1['Q'] = lambda d: d['a'] == 'abc' and d['sum'] == 3
+    # example1['P'] = lambda d: d['a'] == 'abc' and d['sum'] == 0
+    # example1['Q'] = lambda d: d['a'] == 'abc' and d['sum'] == 3
     P = lambda d: And(d['a'] == 'abc' , d['sum'] == 0)
     Q = lambda d: And(d['a'] == 'abc' , d['sum'] == 3)
     #P = lambda d: And(And(d['a'] == 'abc',d['b'] == 'aaa'),d['sum'] == '')
