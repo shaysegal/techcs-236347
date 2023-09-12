@@ -22,7 +22,7 @@ operators_old = {
     ast.Div: lambda x, y: x / y,
     ast.Eq: lambda x, y: x == y
 }
-operators = {
+operators_old_2 = {
     "+": lambda x, y: x + y,
     "-": lambda x, y: x - y,
     "*": lambda x, y: x * y,
@@ -31,6 +31,23 @@ operators = {
     "concat": lambda x, y: x + y,
     "indexof": lambda x, y: z3.IndexOf(x,y),
     "len": lambda x: z3.Length(x)
+}
+
+#? In ASSERRT mode when we called the func ast_to_z3 the op we got was in  ast. foramt so i merge all of them to one dict
+operators = {
+    "+": lambda x, y: x + y,
+    "-": lambda x, y: x - y,
+    "*": lambda x, y: x * y,
+    "/": lambda x, y: x / y,
+    "=": lambda x, y: x == y,
+    "concat": lambda x, y: x + y,
+    "indexof": lambda x, y: z3.IndexOf(x,y),
+    "len": lambda x: z3.Length(x),
+    ast.Add: lambda x, y: x + y,
+    ast.Sub: lambda x, y: x - y,
+    ast.Mult: lambda x, y: x * y,
+    ast.Div: lambda x, y: x / y,
+    ast.Eq: lambda x, y: x == y
 }
 
 def while_tree_to_z3(node, variables):

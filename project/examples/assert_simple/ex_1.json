@@ -2,6 +2,7 @@
     "program": "t := x * ?? ; assert t = x + x",
     "linv": "lambda d: d['x'] >= 0",
     "pvars": "['t', 'x']",
-    "vars_type": "{'t': Int, 'x': Int}"
-
+    "vars_type": "{'t': Int, 'x': Int}",
+    "P": ["lambda d: d['t'] == 0 and d['x'] == 2"],
+    "Q": ["lambda d: d['t'] == 4 and d['x'] == 2"]
 }

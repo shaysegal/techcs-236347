@@ -55,7 +55,6 @@ def run_pbe_simple_synth():
     global curr_window,text_ex,text_prog,working_wp,pbe_simple_dict
     first_key,example = next(iter(pbe_simple_dict.items()))
     del pbe_simple_dict[first_key]
-    # example = pbe_simple_dict.pop(first_key)
     program = example['program']
     linv = example['linv']
     pvars = example['pvars']
@@ -87,9 +86,11 @@ def run_assert_simple_synth():
     program = example['program']
     linv = example['linv']
     pvars = example['pvars']
+    P = example['P']
+    Q = example['Q']
     vars_type = example['vars_type']
-    print_to_example(first_key,program,linv,pvars,[],[])
-    run_wp(program,linv,pvars,vars_type,[],[],text_prog,mode="ASSERT")
+    print_to_example(first_key,program,linv,pvars,P,Q)
+    run_wp(program,linv,pvars,vars_type,P,Q,text_prog,mode="ASSERT")
     working_wp = False
 
 
@@ -100,9 +101,11 @@ def run_assert_program_synth():
     program = example['program']
     linv = example['linv']
     pvars = example['pvars']
+    P = example['P']
+    Q = example['Q']
     vars_type = example['vars_type']
-    print_to_example(first_key,program,linv,pvars,[],[])
-    run_wp(program,linv,pvars,vars_type,[],[],text_prog,mode="ASSERT")
+    print_to_example(first_key,program,linv,pvars,P,Q)
+    run_wp(program,linv,pvars,vars_type,P,Q,text_prog,mode="ASSERT")
     working_wp = False
 
 

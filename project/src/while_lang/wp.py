@@ -408,7 +408,7 @@ def run_wp(program,linv,pvars,var_types,P,Q,text_prog,mode):
         example['Q'] = eval(q)
         example['q_str'] = q
         examples.append(example)
-    if mode == 'Assert':
+    if mode == 'ASSERT':
         ast_prog = WhileParser()(program)
         env = mk_env(pvars,var_types)
         env["types"]=var_types
