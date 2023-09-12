@@ -1,8 +1,8 @@
 {
     "program": "division := g / h / ??",
     "linv": "lambda d: d['w'] != 0",
-    "pvars": ["g", "h", "division"],
-    "vars_type": {"g": "Int", "h": "Int", "division": "Int"},
+    "pvars": "['g', 'h', 'division']",
+    "vars_type": "{'g': 'Int', 'h': 'Int', 'division': 'Int'}",
     "P": ["lambda d: d['g'] == 9 and d['h'] == 3 and d['division'] == 0"],
     "Q": ["lambda d: d['g'] == 9 and d['h'] == 3 and d['division'] == 1"]
 }

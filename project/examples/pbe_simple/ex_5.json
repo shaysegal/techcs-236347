@@ -1,8 +1,8 @@
 {
     "program": "difference := e - f - ??",
     "linv": "lambda d: d['z'] <= 10",
-    "pvars": ["e", "f", "difference"],
-    "vars_type": {"e": "Int", "f": "Int", "difference": "Int"},
+    "pvars": "['e', 'f', 'difference']",
+    "vars_type": "{'e': 'Int', 'f': 'Int', 'difference': 'Int'}",
     "P": ["lambda d: d['e'] == 8 and d['f'] == 3 and d['difference'] == 0"],
     "Q": ["lambda d: d['e'] == 8 and d['f'] == 3 and d['difference'] == 2"]
 }

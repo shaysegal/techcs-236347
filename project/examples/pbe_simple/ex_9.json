@@ -1,8 +1,8 @@
 {
     "program": "square := m * m + ??",
     "linv": "lambda d: d['t'] <= 50",
-    "pvars": ["m", "square"],
-    "vars_type": {"m": "Int", "square": "Int"},
+    "pvars": "['m', 'square']",
+    "vars_type": "{'m': 'Int', 'square': 'Int'}",
     "P": ["lambda d: d['m'] == 4 and d['square'] == 0"],
     "Q": ["lambda d: d['m'] == 4 and d['square'] == 20"]
 }
