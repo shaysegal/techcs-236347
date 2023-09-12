@@ -1,8 +1,8 @@
 {
     "program": "a := 2 ; while a < k do ( b := b - ?? ; if (b + a) > 15 then a := a + 3 else skip )",
     "linv": "lambda d: d['k'] != 0",
-    "pvars": ["a", "b", "k"],
-    "vars_type": {"a": "Int", "b": "Int", "k": "Int"},
+    "pvars": "['a', 'b', 'k']",
+    "vars_type": "{'a': 'Int', 'b': 'Int', 'k': 'Int'}",
     "P": ["lambda d: d['a'] == 2 and d['b'] == 10 and d['k'] == 6"],
     "Q": ["lambda d: d['a'] == 5 and d['b'] == 5 and d['k'] == 6"]
 }

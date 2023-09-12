@@ -6,7 +6,7 @@ import time
 from wp import run_wp
 import re
 import ast
-from top_down import ast_to_z3
+from collections import OrderedDict
 
 window = Window()
 curr_window = window.get_curr_window()
@@ -39,6 +39,7 @@ def read_jsons_from_dir(directory_path):
                         Q = json_data['Q']
                     data_dict[file_name] = {'program': program, 'linv': linv, 'pvars': pvars, 'vars_type': vars_type ,'P': P, 'Q': Q}
     
+    data_dict = OrderedDict(sorted(data_dict.items(), key=lambda t: int(re.search(r'\d+', t[0]).group())))
     return data_dict
 
 
@@ -52,8 +53,9 @@ working_wp = False
 
 def run_pbe_simple_synth():
     global curr_window,text_ex,text_prog,working_wp,pbe_simple_dict
-    first_key = next(iter(pbe_simple_dict.keys()))
-    example = pbe_simple_dict.pop(first_key)
+    first_key,example = next(iter(pbe_simple_dict.items()))
+    del pbe_simple_dict[first_key]
+    # example = pbe_simple_dict.pop(first_key)
     program = example['program']
     linv = example['linv']
     pvars = example['pvars']

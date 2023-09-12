@@ -1,7 +1,7 @@
 {
     "program": "modulus := i % j % ??",
     "linv": "lambda d: d['v'] > 0",
-    "pvars": "[i, j, modulus]",
+    "pvars": "['i', 'j', 'modulus']",
     "vars_type": "{'i': 'Int', 'j': 'Int', 'modulus': 'Int'}",
     "P": ["lambda d: d['i'] == 10 and d['j'] == 3 and d['modulus'] == 0"],
     "Q": ["lambda d: d['i'] == 10 and d['j'] == 3 and d['modulus'] == 1"]

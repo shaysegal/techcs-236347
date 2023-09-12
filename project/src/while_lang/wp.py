@@ -16,9 +16,9 @@ import z3
 old_prog = None
 
 OP = {'+': operator.add, '-': operator.sub,
-      '*': operator.mul, '/': operator.floordiv,
+      '*': operator.mul, '/': operator.truediv,#'/': operator.floordiv
       '!=': operator.ne, '>': operator.gt, '<': operator.lt,
-      '<=': operator.le, '>=': operator.ge, '=': operator.eq,
+      '<=': operator.le, '>=': operator.ge, '=': operator.eq, '%': operator.mod,
         'concat':Concat,
         "indexof":IndexOf #return int and not string
     }
@@ -404,7 +404,9 @@ def run_wp(program,linv,pvars,var_types,P,Q,text_prog,mode):
     for p,q in zip(P,Q):
         example ={}
         example['P'] = eval(p)
+        example['p_str'] = p
         example['Q'] = eval(q)
+        example['q_str'] = q
         examples.append(example)
     if mode == 'Assert':
         ast_prog = WhileParser()(program)
@@ -420,14 +422,14 @@ def run_wp(program,linv,pvars,var_types,P,Q,text_prog,mode):
         first_example = True
         god_program = None
         Q_values_store=[]
+        ast_prog = WhileParser()(program)
+        env = mk_env(pvars,var_types)
+        env["types"]=var_types
         for idx,example in enumerate(examples):
             P = example['P']
             Q = example['Q']
-            ast_prog = WhileParser()(program)
-            env = mk_env(pvars,var_types)
-            env["types"]=var_types
             if ast_prog:
-                Q_values=extract_values_from_Q(q,env)
+                Q_values=extract_values_from_Q(example['q_str'],env)
                 post_id, _,templete = sketch_verify(P, ast_prog, Q, env,linv=linv,global_env=env)
                 Q_values_store.append(Q_values)
                 if god_program :
