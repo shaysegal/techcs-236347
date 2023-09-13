@@ -57,8 +57,8 @@ working_wp = False
 
 
 def get_vars_types(examples,pvars):
-    expression = re.split('lambda \w\: ?',examples[0]['q_str'])[1]
-    lambda_name = re.split('lambda (\w)\: ?',examples[0]['q_str'])[1]
+    expression = re.split('lambda \w\: ?',examples[0]['p_str'])[1]
+    lambda_name = re.split('lambda (\w)\: ?',examples[0]['p_str'])[1]
     vars_types = {}
     for var_name in pvars:
         key_to_extract = f"{lambda_name}['{var_name}']"
