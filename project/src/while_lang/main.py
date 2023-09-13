@@ -196,20 +196,24 @@ def run(synthesizer_mode):
     else: sg.popup_quick_message("Running right now\nPlease wait until finish running the program",auto_close_duration=3)
 
 def run_pbe_simple_synth_user(program,linv,pvars,vars_types,P,Q,examples,Q_values):
-    global text_prog
+    global text_prog, working_wp
     run_wp(program,linv,pvars,vars_types,P,Q,examples,text_prog,mode="PBE",Q_values=Q_values)
+    working_wp = False
 
 def run_pbe_program_synth_user(program,linv,pvars,vars_types,P,Q,examples,Q_values):
-    global text_prog
+    global text_prog, working_wp
     run_wp(program,linv,pvars,vars_types,P,Q,examples,text_prog,mode="PBE",Q_values=Q_values)
+    working_wp = False
 
 def run_assert_simple_synth_user(program,linv,pvars,vars_types,P,Q,examples,Q_values):
-    global text_prog
+    global text_prog, working_wp
     run_wp(program,linv,pvars,vars_types,P,Q,examples,text_prog,mode="ASSERT",Q_values=Q_values)
+    working_wp = False
 
 def run_assert_program_synth_user(program,linv,pvars,vars_types,P,Q,examples,Q_values):
-    global text_prog
+    global text_prog, working_wp
     run_wp(program,linv,pvars,vars_types,P,Q,examples,text_prog,mode="ASSERT",Q_values=Q_values)
+    working_wp = False
 
 
 def make_lambda(str_cond):
@@ -283,33 +287,35 @@ def convert_user_input_to_examples(P,Q,pvars):
     pass
 
 def process_user_mode_input(program,linv,pvars,P,Q):
-    #TODO need to implement for long programs
-    # program = program.replace("\n","")
-    examples = []
-    example = {}
-    pvars=eval(pvars)
-    vars_types,Q_values = convert_user_input_to_vars_type(pvars,Q)
-    
-    for v in pvars:
-        v_to_replace = re.findall(f'{v}\s*[<>=!]+',linv)
-        if len(v_to_replace):
-            v_to_replace = v_to_replace[0]
-            linv = linv.replace(v_to_replace,v_to_replace.replace(v,f"d['{v}']"))
-        v_to_replace = re.findall(f'{v}\s*[<>=!]+',P)
-        if len(v_to_replace):
-            v_to_replace = v_to_replace[0]
-            P = P.replace(v_to_replace,v_to_replace.replace(v,f"d['{v}']"))
-        v_to_replace = re.findall(f'{v}\s*[<>=!]+',Q)
-        if len(v_to_replace):
-            v_to_replace = v_to_replace[0]
-            Q =  Q.replace(v_to_replace,v_to_replace.replace(v,f"d['{v}']"))
-    linv=eval(convert_to_z3_expression(linv))
-    P=eval(convert_to_z3_expression(P))
-    Q=eval(convert_to_z3_expression(Q))
-    example['P'] = P
-    example['Q'] = Q
-    examples.append(example)
-    return program,linv,pvars,vars_types,P,Q,examples,Q_values
+    try:
+        examples = []
+        example = {}
+        pvars=eval(pvars)
+        vars_types,Q_values = convert_user_input_to_vars_type(pvars,Q)
+        
+        for v in pvars:
+            v_to_replace = re.findall(f'{v}\s*[<>=!]+',linv)
+            if len(v_to_replace):
+                v_to_replace = v_to_replace[0]
+                linv = linv.replace(v_to_replace,v_to_replace.replace(v,f"d['{v}']"))
+            v_to_replace = re.findall(f'{v}\s*[<>=!]+',P)
+            if len(v_to_replace):
+                v_to_replace = v_to_replace[0]
+                P = P.replace(v_to_replace,v_to_replace.replace(v,f"d['{v}']"))
+            v_to_replace = re.findall(f'{v}\s*[<>=!]+',Q)
+            if len(v_to_replace):
+                v_to_replace = v_to_replace[0]
+                Q =  Q.replace(v_to_replace,v_to_replace.replace(v,f"d['{v}']"))
+        linv=eval(convert_to_z3_expression(linv))
+        P=eval(convert_to_z3_expression(P))
+        Q=eval(convert_to_z3_expression(Q))
+        example['P'] = P
+        example['Q'] = Q
+        examples.append(example)
+        return program,linv,pvars,vars_types,P,Q,examples,Q_values
+    except:
+        sg.popup_quick_message("Input Error!\nPlease read again the Documentation and try again",auto_close_duration=4)
+        return None,None,None,None,None,None,None,None
 
 def run_user_synth(program,linv,pvars,P,Q,synthesizer_mode):
     global curr_window, working_wp,text_ex,text_prog
@@ -320,6 +326,8 @@ def run_user_synth(program,linv,pvars,P,Q,synthesizer_mode):
     text_prog.tag_config("program", foreground="cyan")
     text_prog.tag_config("title", foreground="white")
     program,linv,pvars,vars_types,P,Q, examples,Q_values= process_user_mode_input(program,linv,pvars,P,Q)
+    if program == None:
+        return
     if not working_wp:
         working_wp = True
         if(synthesizer_mode == 'PBE - Simple'): curr_window.perform_long_operation(lambda: run_pbe_simple_synth_user(program,linv,pvars,vars_types,P,Q,examples,Q_values), '-OPERATION DONE-')
@@ -339,63 +347,77 @@ def check_input(program,linv,pvars,P,Q):
     return False
 
 def process_user_input():
-    global window,curr_window,working_wp
-   
-    event, values = curr_window.read()
-    while not (event == sg.WIN_CLOSED or event=="Exit"):
-        if event == "Go":
-            curr_window["-OUT_EXAMPLE-"].update("")
-            curr_window["-OUT_PROG-"].update("")
-            synthesizer_mode = values["-SYNTH_MODE-"]
-            run(synthesizer_mode)
-        elif event == "Next Example":
-            if not working_wp:
-                synthesizer_mode = values["-SYNTH_MODE-"]
+    try:
+        global window,curr_window,working_wp
+        event, values = curr_window.read()
+        while not (event == sg.WIN_CLOSED or event=="Exit"):
+            if event == "Go":
                 curr_window["-OUT_EXAMPLE-"].update("")
                 curr_window["-OUT_PROG-"].update("")
-                run(synthesizer_mode)
-            else: sg.popup_quick_message("Running right now\nPlease wait until finish running the program",auto_close_duration=3)
-        elif event == "Run Through Examples":
-            curr_window.close()
-            curr_window = window.set_layout(window.get_examples_layout())
-        elif event == "User Input":
-            curr_window.close()
-            curr_window = window.set_layout(window.get_user_layout())
-        elif event == "Synth Program":
-            if not working_wp:
                 synthesizer_mode = values["-SYNTH_MODE-"]
-                program = values["-INPUT_PROG-"]
-                linv = values["-LINV-"]
-                pvars = values["-PVARS-"]
-                P = values["-P-"]
-                Q = values["-Q-"]
-                # vars_type = values["-VARS_TYPE-"]
-                if check_input(program,linv,pvars,P,Q):
-                    sg.popup_quick_message("Input Error!\nPlease read again the Documentation and try again",auto_close_duration=4)
-                else:
-                    run_user_synth(program,linv,pvars,P,Q,synthesizer_mode)
-            else: sg.popup_quick_message("Running right now\nPlease wait until finish running the program",auto_close_duration=3)
-        elif event == "Reset ALL":
-            curr_window["-INPUT_PROG-"].update("")
-            curr_window["-OUT_PROG-"].update("")
-            curr_window["-LINV-"].update("")
-            curr_window["-PVARS-"].update("")
-            curr_window["-P-"].update("")
-            curr_window["-Q-"].update("")
-        elif event == "Reset":
-            curr_window["-INPUT_PROG-"].update("")
-            curr_window["-OUT_PROG-"].update("")
-        elif event == "Documentation":
-            curr_window.close()
-            curr_window = window.set_layout(window.get_documentation_layout())
-            # curr_window["-DOCS-"].update(window.get_documentation_text())
+                run(synthesizer_mode)
+            elif event == "Next Example":
+                if not working_wp:
+                    synthesizer_mode = values["-SYNTH_MODE-"]
+                    curr_window["-OUT_EXAMPLE-"].update("")
+                    curr_window["-OUT_PROG-"].update("")
+                    run(synthesizer_mode)
+                else: sg.popup_quick_message("Running right now\nPlease wait until finish running the program",auto_close_duration=3)
+            elif event == "Run Through Examples":
+                curr_window.close()
+                curr_window = window.set_layout(window.get_examples_layout())
+            elif event == "User Input":
+                curr_window.close()
+                curr_window = window.set_layout(window.get_user_layout())
+            elif event == "Synth Program":
+                if not working_wp:
+                    curr_window["-OUT_PROG-"].update("")
+                    synthesizer_mode = values["-SYNTH_MODE-"]
+                    program = values["-INPUT_PROG-"]
+                    linv = values["-LINV-"]
+                    pvars = values["-PVARS-"]
+                    P = values["-P-"]
+                    Q = values["-Q-"]
+                    # vars_type = values["-VARS_TYPE-"]
+                    if check_input(program,linv,pvars,P,Q):
+                        sg.popup_quick_message("Input Error!\nPlease read again the Documentation and try again",auto_close_duration=4)
+                    else:
+                        run_user_synth(program,linv,pvars,P,Q,synthesizer_mode)
+                else: sg.popup_quick_message("Running right now\nPlease wait until finish running the program",auto_close_duration=3)
+            elif event == "Reset ALL":
+                if not working_wp:
+                    curr_window["-INPUT_PROG-"].update("")
+                    curr_window["-OUT_PROG-"].update("")
+                    curr_window["-LINV-"].update("")
+                    curr_window["-PVARS-"].update("")
+                    curr_window["-P-"].update("")
+                    curr_window["-Q-"].update("")
+                else: sg.popup_quick_message("Running right now\nPlease wait until finish running the program",auto_close_duration=3)
+            elif event == "Reset":
+                if not working_wp:
+                    curr_window["-INPUT_PROG-"].update("")
+                    curr_window["-OUT_PROG-"].update("")
+                else: sg.popup_quick_message("Running right now\nPlease wait until finish running the program",auto_close_duration=3)
+            elif event == "Documentation":
+                curr_window.close()
+                curr_window = window.set_layout(window.get_documentation_layout())
+                # curr_window["-DOCS-"].update(window.get_documentation_text())
 
-        elif event == "Main Menu":
-            curr_window.close()
-            curr_window = window.set_layout(window.get_main_layout())
-                
-        event, values = curr_window.read()
-    curr_window.close()
+            elif event == "Main Menu":
+                curr_window.close()
+                curr_window = window.set_layout(window.get_main_layout())
+                    
+            event, values = curr_window.read()
+        curr_window.close()
+    except Exception as e:
+        raise e
 
 if __name__ == '__main__':
-    process_user_input()
+    try:
+        process_user_input()
+    except Exception as e:
+        sg.popup_quick_message("Error Occurred!\nPlease try Again",auto_close_duration=4)
+        time.sleep(4)
+        curr_window.close()
+        curr_window = window.set_layout(window.get_main_layout())
+        process_user_input()
