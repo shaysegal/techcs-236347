@@ -22,6 +22,13 @@ OP = {'+': operator.add, '-': operator.sub,
         'concat':Concat,
         "indexof":IndexOf #return int and not string
     }
+REVERSE_OP = {'+': operator.sub, '-': operator.add,
+      '*': operator.truediv, '/': operator.mul,#'/': operator.floordiv
+      '!=': operator.eq, '>': operator.le, '<': operator.ge,
+      '<=': operator.gt, '>=': operator.lt, '=': operator.ne,
+        'concat':Concat,#TODO
+        "indexof":IndexOf #return int and not string
+    }
 UNARY_OP={'len':Length,#UnaryOP, might need something else - also - return int and not string
 }
 terminals = set(["skip","string_element", "num", "+", "-", "*", "/", "if", "then", "else", "while", "do", ";",":=", "(", ")","concat","indexof","len"])
@@ -45,6 +52,15 @@ def upd(env, v, expr):
     env = env.copy()
     env[v] = expr
     return env
+def transform_reverse_cond(cond,env):
+    #should transfrom string to Z3 formual using OP dictionary   
+    for node in PreorderWalk(cond):
+        if node.root in OP:
+            return REVERSE_OP[node.root](transform_reverse_cond(node.subtrees[0],  env),transform_reverse_cond(node.subtrees[1],  env))
+        elif node.root in UNARY_OP:
+            return UNARY_OP[node.root](transform_reverse_cond(node.subtrees[0], env))
+        else:
+            return env[node.subtrees[0].root] if node.subtrees[0].root in env else node.subtrees[0].root
 
 def transform_cond(cond,env):
     #should transfrom string to Z3 formual using OP dictionary   
@@ -388,7 +404,32 @@ def convert_to_z3_expression(py_expression):
         stack = f'And( {stack}, {compare} )'
     
     return f"lambda d: {stack}"
-
+def calucate_Q_reverse(after_values,program_ast):
+    if program_ast.root == ";":
+        before_values = calucate_Q_reverse(after_values,program_ast.subtrees[1])
+        return calucate_Q_reverse(before_values,program_ast.subtrees[0])
+    if program_ast.root == "if":
+        condition = program_ast.subtrees[0]
+        then_expr_values = calucate_Q_reverse(after_values,program_ast.subtrees[1])
+        else_expr_values = calucate_Q_reverse(after_values,program_ast.subtrees[2])
+        then_cond_value = transform_cond(condition,then_expr_values)
+        else_cond_value = transform_cond(condition,else_expr_values)
+        if then_cond_value and else_cond_value:
+            return then_expr_values
+        elif (not then_cond_value) and (not else_cond_value):
+            return else_expr_values
+        else : # it's a mismatch and we have to choose we choose True
+            return then_expr_values
+    if program_ast.root == ":=":
+        if '??' in program_ast.terminals:
+            return after_values
+        changed_variable = program_ast.subtrees[0].subtrees[0].root
+        reversed_value = transform_reverse_cond(program_ast.subtrees[1],after_values)
+        before_values = {key: value for key, value in after_values.items() if key!=changed_variable}
+        before_values[changed_variable]=reversed_value
+        return before_values
+    if program_ast.root == "skip":
+        return after_values.copy()
         
 def run_wp(program,linv,pvars,var_types,P,Q,text_prog,mode):
     text_prog.insert("end", "Start Running...:\n", "program")
@@ -430,8 +471,9 @@ def run_wp(program,linv,pvars,var_types,P,Q,text_prog,mode):
             Q = example['Q']
             if ast_prog:
                 Q_values=extract_values_from_Q(example['q_str'],env)
+                new_Q_values = calucate_Q_reverse(Q_values,ast_prog)
                 post_id, _,templete = sketch_verify(P, ast_prog, Q, env,linv=linv,global_env=env)
-                Q_values_store.append(Q_values)
+                Q_values_store.append(new_Q_values)
                 if god_program :
                     if not check_aginst_current_program(god_program,Q_values,post_id,env):
                         god_program = send_to_synt_pbe(Q_values_store,post_id,env,templete)
