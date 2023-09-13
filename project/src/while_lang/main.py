@@ -196,20 +196,24 @@ def run(synthesizer_mode):
     else: sg.popup_quick_message("Running right now\nPlease wait until finish running the program",auto_close_duration=3)
 
 def run_pbe_simple_synth_user(program,linv,pvars,vars_types,P,Q,examples,Q_values):
-    global text_prog
+    global text_prog, working_wp
     run_wp(program,linv,pvars,vars_types,P,Q,examples,text_prog,mode="PBE",Q_values=Q_values)
+    working_wp = False
 
 def run_pbe_program_synth_user(program,linv,pvars,vars_types,P,Q,examples,Q_values):
-    global text_prog
+    global text_prog, working_wp
     run_wp(program,linv,pvars,vars_types,P,Q,examples,text_prog,mode="PBE",Q_values=Q_values)
+    working_wp = False
 
 def run_assert_simple_synth_user(program,linv,pvars,vars_types,P,Q,examples,Q_values):
-    global text_prog
+    global text_prog, working_wp
     run_wp(program,linv,pvars,vars_types,P,Q,examples,text_prog,mode="ASSERT",Q_values=Q_values)
+    working_wp = False
 
 def run_assert_program_synth_user(program,linv,pvars,vars_types,P,Q,examples,Q_values):
-    global text_prog
+    global text_prog, working_wp
     run_wp(program,linv,pvars,vars_types,P,Q,examples,text_prog,mode="ASSERT",Q_values=Q_values)
+    working_wp = False
 
 
 def make_lambda(str_cond):
@@ -255,7 +259,7 @@ def convert_user_input_to_vars_type(pvars,Q):
     expression = Q
     Q_values = {}
     for var_name in pvars:
-        pattern = fr"{re.escape(var_name)}\s*==\s*(\d+)"
+        pattern = fr"{re.escape(var_name)}\s*==\s*((\d+)|(\w+))"
         match = re.search(pattern, expression)
         value = eval(match.group(1))
         Q_values[var_name] = value
@@ -289,6 +293,20 @@ def process_user_mode_input(program,linv,pvars,P,Q):
     example = {}
     pvars=eval(pvars)
     vars_types,Q_values = convert_user_input_to_vars_type(pvars,Q)
+    
+    for v in pvars:
+        v_to_replace = re.findall(f'{v}\s*[<>=!]+',linv)
+        if len(v_to_replace):
+            v_to_replace = v_to_replace[0]
+            linv = linv.replace(v_to_replace,v_to_replace.replace(v,f"d['{v}']"))
+        v_to_replace = re.findall(f'{v}\s*[<>=!]+',P)
+        if len(v_to_replace):
+            v_to_replace = v_to_replace[0]
+            P = P.replace(v_to_replace,v_to_replace.replace(v,f"d['{v}']"))
+        v_to_replace = re.findall(f'{v}\s*[<>=!]+',Q)
+        if len(v_to_replace):
+            v_to_replace = v_to_replace[0]
+            Q =  Q.replace(v_to_replace,v_to_replace.replace(v,f"d['{v}']"))
     linv=eval(convert_to_z3_expression(linv))
     P=eval(convert_to_z3_expression(P))
     Q=eval(convert_to_z3_expression(Q))
@@ -349,6 +367,7 @@ def process_user_input():
             curr_window = window.set_layout(window.get_user_layout())
         elif event == "Synth Program":
             if not working_wp:
+                curr_window["-OUT_PROG-"].update("")
                 synthesizer_mode = values["-SYNTH_MODE-"]
                 program = values["-INPUT_PROG-"]
                 linv = values["-LINV-"]
@@ -362,15 +381,19 @@ def process_user_input():
                     run_user_synth(program,linv,pvars,P,Q,synthesizer_mode)
             else: sg.popup_quick_message("Running right now\nPlease wait until finish running the program",auto_close_duration=3)
         elif event == "Reset ALL":
-            curr_window["-INPUT_PROG-"].update("")
-            curr_window["-OUT_PROG-"].update("")
-            curr_window["-LINV-"].update("")
-            curr_window["-PVARS-"].update("")
-            curr_window["-P-"].update("")
-            curr_window["-Q-"].update("")
+            if not working_wp:
+                curr_window["-INPUT_PROG-"].update("")
+                curr_window["-OUT_PROG-"].update("")
+                curr_window["-LINV-"].update("")
+                curr_window["-PVARS-"].update("")
+                curr_window["-P-"].update("")
+                curr_window["-Q-"].update("")
+            else: sg.popup_quick_message("Running right now\nPlease wait until finish running the program",auto_close_duration=3)
         elif event == "Reset":
-            curr_window["-INPUT_PROG-"].update("")
-            curr_window["-OUT_PROG-"].update("")
+            if not working_wp:
+                curr_window["-INPUT_PROG-"].update("")
+                curr_window["-OUT_PROG-"].update("")
+            else: sg.popup_quick_message("Running right now\nPlease wait until finish running the program",auto_close_duration=3)
         elif event == "Documentation":
             curr_window.close()
             curr_window = window.set_layout(window.get_documentation_layout())
