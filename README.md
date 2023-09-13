@@ -1,7 +1,5 @@
 # Program Synthesizer
 
-Our synthesizer can get as User Input in both modes and Synthesize a program based on the input. Our synthesizer sketch support Integers and Strings.
-
 ## Synthesizer Modes:
 Our synthesizer operates in four primary modes:
 - Run through examples: which allows the user to learn and test the synthesizer abilities, by going over a set of preconstructed, diverse and comprehensive examples.
@@ -10,10 +8,12 @@ Our synthesizer operates in four primary modes:
 
 
 ## Synthesizer Ability:
-- PBE: In this mode, our synthesizer generates Python programs based on provided input-output examples.
+- PBE Mode: In this mode, our synthesizer generates Python programs based on provided input-output examples.
 
 - ASSERT Mode: In this mode, our synthesizer can handle simple assertions in programs.
-
+  
+- Our code synthesizer can get as User Input in both modes and Synthesize a program based on the input. Our synthesizer sketch support Integers and Strings.
+  
 *simple Mode: runs through examples of PBE and ASSERT that are simple assign.
 
 ## Synthesizer Limits:
@@ -30,7 +30,7 @@ Our synthesizer operates in four primary modes:
 3. Click the "GO" button to start viewing the examples.
 4. Click "Next Example" to continue to the next example program
 
-#### Usert Input mode:
+#### User Input mode:
 1. Click on the "Usert Input" button in the main menu.
 2. choose the constraints type on the upper checkbox (PBE or ASSERT).
 3. Insert the needed constraints in the same format seen in the examples.
@@ -72,7 +72,9 @@ brew install python-tk
 pip install pysimplegui
 ```
 
-#### To run the synthisizer, run the main.py file in the repo.## Demo
+#### To run the synthisizer, run the main.py file in the repo.
+
+## Demo
 
 A demo of the User Input mode:
 
