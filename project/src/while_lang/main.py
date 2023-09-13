@@ -234,7 +234,7 @@ def convert_to_z3_expression(py_expression):
     
     return f"lambda d: {stack}"
 
-def process_input(program,linv,pvars,P,Q):
+def process_user_mode_input(program,linv,pvars,P,Q):
     #TODO need to implement for long programs
     # program = program.replace("\n","")
     linv=eval(convert_to_z3_expression(linv))
@@ -251,7 +251,7 @@ def run_user_synth(program,linv,pvars,P,Q,synthesizer_mode):
     text_prog = curr_window["-OUT_PROG-"].Widget
     text_prog.tag_config("program", foreground="cyan")
     text_prog.tag_config("title", foreground="white")
-    program,linv,pvars,P,Q = process_input(program,linv,pvars,P,Q)
+    program,linv,pvars,P,Q = process_user_mode_input(program,linv,pvars,P,Q)
     if not working_wp:
         working_wp = True
         if(synthesizer_mode == 'PBE - Simple'): curr_window.perform_long_operation(lambda: run_pbe_simple_synth_user(program,linv,pvars,P,Q), '-OPERATION DONE-')
