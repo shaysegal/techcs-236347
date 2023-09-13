@@ -57,8 +57,8 @@ working_wp = False
 
 
 def get_vars_types(examples,pvars):
-    expression = re.split('lambda \w\: ?',examples[0]['p_str'])[1]
-    lambda_name = re.split('lambda (\w)\: ?',examples[0]['p_str'])[1]
+    expression = re.split('lambda \w\: ?',examples[0]['q_str'])[1]
+    lambda_name = re.split('lambda (\w)\: ?',examples[0]['q_str'])[1]
     vars_types = {}
     for var_name in pvars:
         key_to_extract = f"{lambda_name}['{var_name}']"
@@ -70,6 +70,7 @@ def get_vars_types(examples,pvars):
         if isinstance(var,str):
             vars_types[key] = String
     return vars_types
+
 def process_all_inputs(example):
     program = example['program']
     linv = example['linv']
@@ -173,14 +174,18 @@ def run(synthesizer_mode):
         elif(synthesizer_mode == 'ASSERT - As Part Of Program'): curr_window.perform_long_operation(lambda: run_assert_program_synth(), '-OPERATION DONE-')
     else: sg.popup_quick_message("Running right now\nPlease wait until finish running the program",auto_close_duration=3)
 
-def run_pbe_simple_synth_user(program,linv,pvars,P,Q):
-    run_wp(program,linv,pvars,[],P,Q,text_prog,mode="PBE")
-def run_pbe_program_synth_user(program,linv,pvars,P,Q):
-    run_wp(program,linv,pvars,[],P,Q,text_prog,mode="PBE")
-def run_assert_simple_synth_user(program,linv,pvars,P,Q):
-    run_wp(program,linv,pvars,[],[],text_prog,mode="ASSERT")
-def run_assert_program_synth_user(program,linv,pvars,P,Q):
-    run_wp(program,linv,pvars,[],[],text_prog,mode="ASSERT")
+def run_pbe_simple_synth_user(program,linv,pvars,vars_types,P,Q,examples,Q_values):
+    global text_prog
+    run_wp(program,linv,pvars,vars_types,P,Q,examples,text_prog,mode="PBE",Q_values=Q_values)
+
+def run_pbe_program_synth_user(program,linv,pvars,vars_types,P,Q,examples,Q_values):
+    run_wp(program,linv,pvars,vars_types,P,Q,examples,text_prog,mode="PBE",Q_values=Q_values)
+
+def run_assert_simple_synth_user(program,linv,pvars,vars_types,P,Q,examples,Q_values):
+    run_wp(program,linv,pvars,vars_types,P,Q,examples,text_prog,mode="ASSERT",Q_values=Q_values)
+
+def run_assert_program_synth_user(program,linv,pvars,vars_types,P,Q,examples,Q_values):
+    run_wp(program,linv,pvars,vars_types,P,Q,examples,text_prog,mode="ASSERT",Q_values=Q_values)
 
 
 def make_lambda(str_cond):
@@ -220,7 +225,23 @@ def make_lambda(str_cond):
     lambda_func = generate_lambda(parsed_condition)
     return lambda_func
 
-
+def convert_user_input_to_vars_type(pvars,Q):
+    vars_types_temp = {}
+    vars_types = {}
+    expression = Q
+    Q_values = {}
+    for var_name in pvars:
+        pattern = fr"{re.escape(var_name)}\s*==\s*(\d+)"
+        match = re.search(pattern, expression)
+        value = eval(match.group(1))
+        Q_values[var_name] = value
+        vars_types_temp[var_name] = value
+    for key,var in vars_types_temp.items():
+        if isinstance(var,int):
+            vars_types[key] = Int
+        if isinstance(var,str):
+            vars_types[key] = String
+    return vars_types, Q_values
 
 def convert_to_z3_expression(py_expression):
 
@@ -234,14 +255,23 @@ def convert_to_z3_expression(py_expression):
     
     return f"lambda d: {stack}"
 
+def convert_user_input_to_examples(P,Q,pvars):
+    pass
+
 def process_user_mode_input(program,linv,pvars,P,Q):
     #TODO need to implement for long programs
     # program = program.replace("\n","")
+    examples = []
+    example = {}
+    pvars=eval(pvars)
+    vars_types,Q_values = convert_user_input_to_vars_type(pvars,P)
     linv=eval(convert_to_z3_expression(linv))
     P=eval(convert_to_z3_expression(P))
     Q=eval(convert_to_z3_expression(Q))
-    pvars=eval(pvars)
-    return program,linv,pvars,P,Q
+    example['P'] = P
+    example['Q'] = Q
+    examples.append(example)
+    return program,linv,pvars,vars_types,P,Q,examples,Q_values
 
 def run_user_synth(program,linv,pvars,P,Q,synthesizer_mode):
     global curr_window, working_wp,text_ex,text_prog
@@ -251,13 +281,13 @@ def run_user_synth(program,linv,pvars,P,Q,synthesizer_mode):
     text_prog = curr_window["-OUT_PROG-"].Widget
     text_prog.tag_config("program", foreground="cyan")
     text_prog.tag_config("title", foreground="white")
-    program,linv,pvars,P,Q = process_user_mode_input(program,linv,pvars,P,Q)
+    program,linv,pvars,vars_types,P,Q, examples,Q_values= process_user_mode_input(program,linv,pvars,P,Q)
     if not working_wp:
         working_wp = True
-        if(synthesizer_mode == 'PBE - Simple'): curr_window.perform_long_operation(lambda: run_pbe_simple_synth_user(program,linv,pvars,P,Q), '-OPERATION DONE-')
-        elif(synthesizer_mode == 'PBE - As Part Of Program'): curr_window.perform_long_operation(lambda: run_pbe_simple_synth_user(program,linv,pvars,P,Q), '-OPERATION DONE-')
-        elif(synthesizer_mode == 'ASSERT - Simple'): curr_window.perform_long_operation(lambda: run_pbe_simple_synth_user(program,linv,pvars,P,Q), '-OPERATION DONE-')
-        elif(synthesizer_mode == 'ASSERT - As Part Of Program'): curr_window.perform_long_operation(lambda: run_pbe_simple_synth_user(program,linv,pvars,P,Q), '-OPERATION DONE-')
+        if(synthesizer_mode == 'PBE - Simple'): curr_window.perform_long_operation(lambda: run_pbe_simple_synth_user(program,linv,pvars,vars_types,P,Q,examples,Q_values), '-OPERATION DONE-')
+        elif(synthesizer_mode == 'PBE - As Part Of Program'): curr_window.perform_long_operation(lambda: run_pbe_simple_synth_user(program,linv,pvars,vars_types,P,Q,examples,Q_values), '-OPERATION DONE-')
+        elif(synthesizer_mode == 'ASSERT - Simple'): curr_window.perform_long_operation(lambda: run_pbe_simple_synth_user(program,linv,pvars,vars_types,P,Q,examples,Q_values), '-OPERATION DONE-')
+        elif(synthesizer_mode == 'ASSERT - As Part Of Program'): curr_window.perform_long_operation(lambda: run_pbe_simple_synth_user(program,linv,pvars,vars_types,P,Q,examples,Q_values), '-OPERATION DONE-')
     else: sg.popup_quick_message("Running right now\nPlease wait until finish running the program",auto_close_duration=3)
     # print_to_example("User Input",program,linv,pvars,P,Q)
     # run_wp(program,linv,pvars,vars_type,P,Q,text_prog,mode="PBE")
