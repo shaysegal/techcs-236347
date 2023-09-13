@@ -40,16 +40,15 @@ Our synthesizer operates in four primary modes:
 A demo of the User Input mode:
 
 1. Click on the "Usert Input" button in the main menu.
-[picture of demo]
+![Example Image 1](./pics/1.jpg)
 
 2. choose the constraints type on the upper checkbox (PBE or ASSERT).
-[picture of demo]
+![Example Image 2](./pics/2.jpg)
 
 3. Insert the needed constraints in the same format seen in the examples.
-[picture of demo]
 
 4. Insert wanted program to complete, with the sketch hold in a place suitable for the given Synth abilities metioned above.
-[picture of demo]
+   ![Example Image 3](./pics/3_4.jpg)
 
 5. Click the "Synth Program" button to get the fully completed code. Click on "Resert" or "Reset ALL" to change tour input.
 [picture of demo]
