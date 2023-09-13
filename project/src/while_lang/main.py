@@ -7,6 +7,8 @@ from wp import run_wp
 import re
 import ast
 from collections import OrderedDict
+from z3 import Int,String, ForAll, Implies, Not, And, Or, Solver, unsat, sat,Length,Concat,IndexOf
+
 
 window = Window()
 curr_window = window.get_curr_window()
@@ -31,7 +33,9 @@ def read_jsons_from_dir(directory_path):
                     program = json_data['program']
                     linv = json_data['linv']
                     pvars = json_data['pvars']
-                    vars_type = json_data['vars_type']
+                    if 'vars_type' in json_data:
+                        vars_type = json_data['vars_type']
+                    else: vars_type = []
                     P = []
                     Q = []
                     if 'P' in json_data:
@@ -51,46 +55,65 @@ assert_program_dict = read_jsons_from_dir(ASSERT_PROGRAM_DICT)
 working_wp = False
 
 
-def run_pbe_simple_synth():
-    global curr_window,text_ex,text_prog,working_wp,pbe_simple_dict
-    first_key,example = next(iter(pbe_simple_dict.items()))
-    del pbe_simple_dict[first_key]
+
+def get_vars_types(examples,pvars):
+    expression = re.split('lambda \w\: ?',examples[0]['p_str'])[1]
+    lambda_name = re.split('lambda (\w)\: ?',examples[0]['p_str'])[1]
+    vars_types = {}
+    for var_name in pvars:
+        key_to_extract = f"{lambda_name}['{var_name}']"
+        match = re.search(fr"{re.escape(key_to_extract)}\s*==\s*(\d+)", expression)
+        vars_types[var_name] = eval(match.group(1)) 
+    for key,var in vars_types.items():
+        if isinstance(var,int):
+            vars_types[key] = Int
+        if isinstance(var,str):
+            vars_types[key] = String
+    return vars_types
+def process_all_inputs(example):
     program = example['program']
     linv = example['linv']
     pvars = example['pvars']
     P = example['P']
     Q = example['Q']
-    vars_type = example['vars_type']
-    print_to_example(first_key,program,linv,pvars,P,Q)
-    run_wp(program,linv,pvars,vars_type,P,Q,text_prog,mode="PBE")
+    pvars = eval(pvars)
+    linv = eval(linv)
+    examples =[]
+    for p,q in zip(P,Q):
+        example ={}
+        example['P'] = eval(p)
+        example['p_str'] = p
+        example['Q'] = eval(q)
+        example['q_str'] = q
+        examples.append(example)
+    vars_types = get_vars_types(examples,pvars)
+    return program,linv,pvars,vars_types,P,Q,examples
+
+def run_pbe_simple_synth():
+    global curr_window,text_ex,text_prog,working_wp,pbe_simple_dict
+    first_key,example = next(iter(pbe_simple_dict.items()))
+    del pbe_simple_dict[first_key]
+    print_to_example(first_key,example['program'],example['linv'],example['pvars'],example['P'],example['Q'])
+    program,linv,pvars,vars_types,P,Q,examples = process_all_inputs(example)
+    run_wp(program,linv,pvars,vars_types,P,Q,examples,text_prog,mode="PBE")
     working_wp = False
 
 def run_pbe_program_synth():
     global curr_window,text_ex,text_prog,working_wp,pbe_program_dict
     first_key = next(iter(pbe_program_dict.keys()))
     example = pbe_program_dict.pop(first_key)
-    program = example['program']
-    linv = example['linv']
-    pvars = example['pvars']
-    P = example['P']
-    Q = example['Q']
-    vars_type = example['vars_type']
-    print_to_example(first_key,program,linv,pvars,P,Q)
-    run_wp(program,linv,pvars,vars_type,P,Q,text_prog,mode="PBE")
+    print_to_example(first_key,example['program'],example['linv'],example['pvars'],example['P'],example['Q'])
+    program,linv,pvars,vars_types,P,Q,examples = process_all_inputs(example)
+    run_wp(program,linv,pvars,vars_types,P,Q,examples,text_prog,mode="PBE")
     working_wp = False
 
 def run_assert_simple_synth():
     global curr_window,text_ex,text_prog,working_wp,assert_simple_dict
     first_key = next(iter(assert_simple_dict.keys()))
     example = assert_simple_dict.pop(first_key)
-    program = example['program']
-    linv = example['linv']
-    pvars = example['pvars']
-    P = example['P']
-    Q = example['Q']
-    vars_type = example['vars_type']
-    print_to_example(first_key,program,linv,pvars,P,Q)
-    run_wp(program,linv,pvars,vars_type,P,Q,text_prog,mode="ASSERT")
+    print_to_example(first_key,example['program'],example['linv'],example['pvars'],example['P'],example['Q'])
+    program,linv,pvars,vars_types,P,Q,examples = process_all_inputs(example)
+    run_wp(program,linv,pvars,vars_types,P,Q,examples,text_prog,mode="ASSERT")
     working_wp = False
 
 
@@ -98,14 +121,9 @@ def run_assert_program_synth():
     global curr_window,text_ex,text_prog,working_wp,assert_program_dict
     first_key = next(iter(assert_program_dict.keys()))
     example = assert_program_dict.pop(first_key)
-    program = example['program']
-    linv = example['linv']
-    pvars = example['pvars']
-    P = example['P']
-    Q = example['Q']
-    vars_type = example['vars_type']
-    print_to_example(first_key,program,linv,pvars,P,Q)
-    run_wp(program,linv,pvars,vars_type,P,Q,text_prog,mode="ASSERT")
+    print_to_example(first_key,example['program'],example['linv'],example['pvars'],example['P'],example['Q'])
+    program,linv,pvars,vars_types,P,Q,examples = process_all_inputs(example)
+    run_wp(program,linv,pvars,vars_types,P,Q,examples,text_prog,mode="ASSERT")
     working_wp = False
 
 

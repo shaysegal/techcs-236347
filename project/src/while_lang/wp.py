@@ -390,24 +390,8 @@ def convert_to_z3_expression(py_expression):
     return f"lambda d: {stack}"
 
         
-def run_wp(program,linv,pvars,var_types,P,Q,text_prog,mode):
+def run_wp(program,linv,pvars,var_types,P,Q,examples,text_prog,mode):
     text_prog.insert("end", "Start Running...:\n", "program")
-    pvars = eval(pvars)
-    linv = eval(linv)
-    var_types = eval(var_types)
-    for key,var in var_types.items():
-        if var == "Int":
-            var_types[key] = Int
-        if var == "String":
-            var_types[key] = String
-    examples =[]
-    for p,q in zip(P,Q):
-        example ={}
-        example['P'] = eval(p)
-        example['p_str'] = p
-        example['Q'] = eval(q)
-        example['q_str'] = q
-        examples.append(example)
     if mode == 'ASSERT':
         ast_prog = WhileParser()(program)
         env = mk_env(pvars,var_types)
@@ -448,8 +432,8 @@ def run_wp(program,linv,pvars,var_types,P,Q,text_prog,mode):
     text_prog.insert("end", "Verifying the following program:\n", "title")
     text_prog.insert("end",program+"\n", "program")
     text_prog.insert("end","-----------------------------\n", "title")
-    P=eval(convert_to_z3_expression(re.split('lambda \w\: ?', p)[1]))
-    Q=eval(convert_to_z3_expression(re.split('lambda \w\: ?', q)[1]))
+    P=eval(convert_to_z3_expression(re.split('lambda \w\: ?', examples[0]['p_str'])[1]))
+    Q=eval(convert_to_z3_expression(re.split('lambda \w\: ?', examples[0]['q_str'])[1]))
     verify(P, ast_program, Q,pvars, linv=linv,env=env,text_prog=text_prog)
 
 
