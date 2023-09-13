@@ -26,7 +26,7 @@ REVERSE_OP = {'+': operator.sub, '-': operator.add,
       '*': operator.truediv, '/': operator.mul,#'/': operator.floordiv
       '!=': operator.eq, '>': operator.le, '<': operator.ge,
       '<=': operator.gt, '>=': operator.lt, '=': operator.ne,
-        'concat':Concat,#TODO
+        'concat':lambda a,b : a[0:str.index(a,b,-1)] if b in a else a,
         "indexof":IndexOf #return int and not string
     }
 UNARY_OP={'len':Length,#UnaryOP, might need something else - also - return int and not string
@@ -459,8 +459,9 @@ def run_wp(program,linv,pvars,var_types,P,Q,examples,text_prog,mode,Q_values=Non
             if ast_prog:
                 if not got_q_values:
                     Q_values=extract_values_from_Q(example['q_str'],env)
+                    new_Q_values = calucate_Q_reverse(Q_values,ast_prog)
                 post_id, _,templete = sketch_verify(P, ast_prog, Q, env,linv=linv,global_env=env)
-                Q_values_store.append(Q_values)
+                Q_values_store.append(new_Q_values)
                 if god_program :
                     if not check_aginst_current_program(god_program,Q_values,post_id,env):
                         god_program = send_to_synt_pbe(Q_values_store,post_id,env,templete)

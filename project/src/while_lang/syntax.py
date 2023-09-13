@@ -6,8 +6,7 @@ from parsing.silly import SillyLexer
 
 
 class WhileParser(object):
-
-    TOKENS = r"(if|then|else|while|do|skip|assert)(?![\w\d_])   (?P<op>[!<>]=|([+\-*/<>=])|(concat|indexof))    (?P<unary_op>(len))   (?P<id>[^\W\d]\w*)   (?P<sketch>\?\?)   (?P<num>[+\-]?\d+)    [();]  :=".split()
+    TOKENS = r"(if|then|else|while|do|skip|assert)(?![\w\d_])   (?P<op>[!<>]=|([+\-*/<>=])|(concat|indexof))    (?P<unary_op>(len))   (?P<id>[^\W\d]\w*)   (?P<sketch>\?\?)   (?P<string_object>\'\w+\')     (?P<num>[+\-]?\d+)   [();]  :=".split()
     #TOKENS = r"(if|then|else|while|do|skip|assert)(?![\w\d_])   (?P<id>[^\W\d]\w*)   (?P<sketch>\?\?)   (?P<num>[+\-]?\d+)   (?P<string_object>((\"\w+\")|(\'\w+\')))   (?P<op>[!<>]=|([+\-*/<>=]))   (?P<string_op>(IndexOf|++))   (?P<string_unary_op>(Len))    [();]  :=".split()
     GRAMMAR = r"""
     S   ->   S1     |   S1 ; S 
@@ -64,7 +63,8 @@ class WhileParser(object):
             return Tree(t.subtrees[0].root, [self.postprocess(t.subtrees[1])])
         elif t.root == 'num':
             return Tree(t.root, [Tree(int(t.subtrees[0].root))])  # parse ints
-
+        elif t.root == 'string_object':
+            return Tree(t.root, [Tree(t.subtrees[0].root.replace("'",""))])
         return Tree(t.root, [self.postprocess(s) for s in t.subtrees])
     
 class ExpressionWhileParser(object):
@@ -112,7 +112,8 @@ class ExpressionWhileParser(object):
             return Tree(t.subtrees[0].root, [self.postprocess(t.subtrees[1])])
         elif t.root == 'num':
             return Tree(t.root, [Tree(int(t.subtrees[0].root))])  # parse ints
-
+        elif t.root == 'string_object':
+            return Tree(t.root, [Tree(t.subtrees[0].root.replace("'",""))])
         return Tree(t.root, [self.postprocess(s) for s in t.subtrees])
     
     
