@@ -288,7 +288,7 @@ def process_user_mode_input(program,linv,pvars,P,Q):
     examples = []
     example = {}
     pvars=eval(pvars)
-    vars_types,Q_values = convert_user_input_to_vars_type(pvars,P)
+    vars_types,Q_values = convert_user_input_to_vars_type(pvars,Q)
     linv=eval(convert_to_z3_expression(linv))
     P=eval(convert_to_z3_expression(P))
     Q=eval(convert_to_z3_expression(Q))

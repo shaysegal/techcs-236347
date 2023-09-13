@@ -460,6 +460,7 @@ def run_wp(program,linv,pvars,var_types,P,Q,examples,text_prog,mode,Q_values=Non
                 if not got_q_values:
                     Q_values=extract_values_from_Q(example['q_str'],env)
                     new_Q_values = calucate_Q_reverse(Q_values,ast_prog)
+                else: new_Q_values = Q_values
                 post_id, _,templete = sketch_verify(P, ast_prog, Q, env,linv=linv,global_env=env)
                 Q_values_store.append(new_Q_values)
                 if god_program :
