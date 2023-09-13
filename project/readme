@@ -1,0 +1,35 @@
+1. Synthesizer Modes:
+Our synthesizer operates in four primary modes:
+
+a. PBE simple Mode:
+- In this mode, our synthesizer generates Python programs based on provided input-output examples.
+- This mode is called simple PBE mode because the programs its get mostly are simple programs such like equations.
+- 
+
+b. PBE Mode - As Part of Program:
+- The key components of this mode are similar to the simple PBE mode but can be used to synthesize more complex programs.
+-
+-
+
+
+c. ASSERT simple Mode:
+- In this mode, our synthesizer can handle simple assertions in programs.
+- mostly the assertions will shown up straight after line it relevant to.
+
+d. ASSERT Mode - As Part of Program:
+- The key components of this mode are similar to the simple ASSERT mode but can be used to synthesize more complex programs.
+- 
+
+
+2. Synthesizer Ability:
+- Our synthesizer can generate Python programs based on examples (PBE mode) and generate assertions (ASSERT mode) within existing programs. 
+- Our synthesizer can get as User Input in all 4 modes and Synthesize a program based on the input.
+- Our synthesizer sketch support constanst, Integers, Strings.
+
+
+3. Synthesizer Limits:
+- Our synthesizer can't handle assertion inside loops.
+- 
+
+5. How to Insert Input in User Input Mode:
+We should explain how users can interact with our synthesizer to provide input for program synthesis or assertion generation.

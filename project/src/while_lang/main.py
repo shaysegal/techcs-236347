@@ -202,9 +202,27 @@ def make_lambda(str_cond):
     lambda_func = generate_lambda(parsed_condition)
     return lambda_func
 
+
+
+def convert_to_z3_expression(py_expression):
+
+    # Split each 'or' token by 'and'
+    and_tokens = py_expression.split(' and ')
+    stack,rest = and_tokens[0],and_tokens[1:]
+    # Initialize an empty list for 'and' conditions in this 'or' token
+    # Combine 'and' conditions in this 'or' token using 'And'
+    for compare in rest:
+        stack = f'And( {stack}, {compare} )'
+    
+    return f"lambda d: {stack}"
+
 def process_input(program,linv,pvars,P,Q):
-    #TODO need to implement
-    raise NotImplemented
+    #TODO need to implement for long programs
+    # program = program.replace("\n","")
+    linv=eval(convert_to_z3_expression(linv))
+    P=eval(convert_to_z3_expression(P))
+    Q=eval(convert_to_z3_expression(Q))
+    pvars=eval(pvars)
     return program,linv,pvars,P,Q
 
 def run_user_synth(program,linv,pvars,P,Q,synthesizer_mode):
@@ -223,7 +241,7 @@ def run_user_synth(program,linv,pvars,P,Q,synthesizer_mode):
         elif(synthesizer_mode == 'ASSERT - Simple'): curr_window.perform_long_operation(lambda: run_pbe_simple_synth_user(program,linv,pvars,P,Q), '-OPERATION DONE-')
         elif(synthesizer_mode == 'ASSERT - As Part Of Program'): curr_window.perform_long_operation(lambda: run_pbe_simple_synth_user(program,linv,pvars,P,Q), '-OPERATION DONE-')
     else: sg.popup_quick_message("Running right now\nPlease wait until finish running the program",auto_close_duration=3)
-    print_to_example("User Input",program,linv,pvars,P,Q)
+    # print_to_example("User Input",program,linv,pvars,P,Q)
     # run_wp(program,linv,pvars,vars_type,P,Q,text_prog,mode="PBE")
 
 def check_input(program,linv,pvars,P,Q):

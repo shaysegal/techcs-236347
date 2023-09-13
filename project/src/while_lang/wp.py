@@ -453,7 +453,53 @@ def run_wp(program,linv,pvars,var_types,P,Q,text_prog,mode):
     verify(P, ast_program, Q,pvars, linv=linv,env=env,text_prog=text_prog)
 
 
-    
+      
+def run_wp_user(program,linv,pvars,P,Q,text_prog,mode):
+    text_prog.insert("end", "Start Running...:\n", "program")
+    if mode == 'ASSERT':
+        ast_prog = WhileParser()(program)
+        env = mk_env(pvars,var_types)
+        env["types"]=var_types
+        if ast_prog:
+            assert_cond = get_assert_cond(program)
+            post_id,templete_prog = get_sketch_program(ast_prog)
+            god_program = send_to_synt_assert(assert_cond,post_id,templete_prog,env)
+            pattern_to_remove = r"assert \w+ = (\w+ [+\-*/] \w+)( [+\-*/] \w+)*( ;)?"
+            program = re.sub(pattern_to_remove, "", program)
+    else:
+        first_example = True
+        god_program = None
+        Q_values_store=[]
+        ast_prog = WhileParser()(program)
+        env = mk_env(pvars,var_types)
+        env["types"]=var_types
+        for idx,example in enumerate(examples):
+            P = example['P']
+            Q = example['Q']
+            if ast_prog:
+                Q_values=extract_values_from_Q(example['q_str'],env)
+                post_id, _,templete = sketch_verify(P, ast_prog, Q, env,linv=linv,global_env=env)
+                Q_values_store.append(Q_values)
+                if god_program :
+                    if not check_aginst_current_program(god_program,Q_values,post_id,env):
+                        god_program = send_to_synt_pbe(Q_values_store,post_id,env,templete)
+                else:
+                    #first check if current god_prog is 
+                    god_program = send_to_synt_pbe(Q_values_store,post_id,env,templete)
+                
+            else:
+                print(">> Invalid program.")
+
+    if program.endswith('; '): program = program[-1::-1].replace('; ', '',1)[-1::-1]
+    program = program.replace("??",god_program)
+    ast_program = WhileParser()(program)
+    text_prog.insert("end", "Verifying the following program:\n", "title")
+    text_prog.insert("end",program+"\n", "program")
+    text_prog.insert("end","-----------------------------\n", "title")
+    P=eval(convert_to_z3_expression(re.split('lambda \w\: ?', p)[1]))
+    Q=eval(convert_to_z3_expression(re.split('lambda \w\: ?', q)[1]))
+    verify(P, ast_program, Q,pvars, linv=linv,env=env,text_prog=text_prog)
+
 
 # if __name__ == '__main__':
     # mode = 'PBE'
