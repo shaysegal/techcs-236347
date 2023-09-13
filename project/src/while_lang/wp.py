@@ -473,6 +473,9 @@ def run_wp(program,linv,pvars,var_types,P,Q,examples,text_prog,mode,Q_values=Non
                 print(">> Invalid program.")
 
     if program.endswith('; '): program = program[-1::-1].replace('; ', '',1)[-1::-1]
+    if god_program == None:
+        text_prog.insert("end", ">> Synthesizer Do Not Support.\n", "title")
+        return
     program = program.replace("??",god_program)
     ast_program = WhileParser()(program)
     text_prog.insert("end", "Verifying the following program:\n", "title")
