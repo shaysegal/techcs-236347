@@ -1,0 +1,7 @@
+{
+    "program": "sum := ??",
+    "linv": "lambda d: d['y'] >= 0",
+    "pvars": "['a', 'b', 'sum']",
+    "P": ["lambda d: d['a'] == 'abc' and d['b'] == 'aaa' and d['sum'] == ''","lambda d: d['a'] == 'abc' and d['b'] == 'bab' and d['sum'] == ''"],
+    "Q": ["lambda d: d['a'] == 'abc' and d['b'] == 'aaa' and d['sum'] == 'abcaaa'","lambda d: d['a'] == 'abc' and d['b'] == 'bab' and d['sum'] == 'abcbab'"]
+}

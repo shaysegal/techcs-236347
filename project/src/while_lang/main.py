@@ -62,8 +62,13 @@ def get_vars_types(examples,pvars):
     vars_types = {}
     for var_name in pvars:
         key_to_extract = f"{lambda_name}['{var_name}']"
-        match = re.search(fr"{re.escape(key_to_extract)}\s*==\s*(\d+)", expression)
-        vars_types[var_name] = eval(match.group(1)) 
+        match = re.search(fr"{re.escape(key_to_extract)}\s*==\s*'([^']*)'", expression)
+        if not match:
+            match = re.search(fr"{re.escape(key_to_extract)}\s*==\s*(\d+)", expression)
+        try:
+            vars_types[var_name] = eval(match.group(1))
+        except:
+            vars_types[var_name] = match.group(1) 
     for key,var in vars_types.items():
         if isinstance(var,int):
             vars_types[key] = Int
