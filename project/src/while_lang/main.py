@@ -7,6 +7,8 @@ from wp import run_wp
 import re
 import ast
 from collections import OrderedDict
+from z3 import Int,String, ForAll, Implies, Not, And, Or, Solver, unsat, sat,Length,Concat,IndexOf
+
 
 window = Window()
 curr_window = window.get_curr_window()
@@ -31,7 +33,9 @@ def read_jsons_from_dir(directory_path):
                     program = json_data['program']
                     linv = json_data['linv']
                     pvars = json_data['pvars']
-                    vars_type = json_data['vars_type']
+                    if 'vars_type' in json_data:
+                        vars_type = json_data['vars_type']
+                    else: vars_type = []
                     P = []
                     Q = []
                     if 'P' in json_data:
@@ -51,46 +55,66 @@ assert_program_dict = read_jsons_from_dir(ASSERT_PROGRAM_DICT)
 working_wp = False
 
 
-def run_pbe_simple_synth():
-    global curr_window,text_ex,text_prog,working_wp,pbe_simple_dict
-    first_key,example = next(iter(pbe_simple_dict.items()))
-    del pbe_simple_dict[first_key]
+
+def get_vars_types(examples,pvars):
+    expression = re.split('lambda \w\: ?',examples[0]['q_str'])[1]
+    lambda_name = re.split('lambda (\w)\: ?',examples[0]['q_str'])[1]
+    vars_types = {}
+    for var_name in pvars:
+        key_to_extract = f"{lambda_name}['{var_name}']"
+        match = re.search(fr"{re.escape(key_to_extract)}\s*==\s*(\d+)", expression)
+        vars_types[var_name] = eval(match.group(1)) 
+    for key,var in vars_types.items():
+        if isinstance(var,int):
+            vars_types[key] = Int
+        if isinstance(var,str):
+            vars_types[key] = String
+    return vars_types
+
+def process_all_inputs(example):
     program = example['program']
     linv = example['linv']
     pvars = example['pvars']
     P = example['P']
     Q = example['Q']
-    vars_type = example['vars_type']
-    print_to_example(first_key,program,linv,pvars,P,Q)
-    run_wp(program,linv,pvars,vars_type,P,Q,text_prog,mode="PBE")
+    pvars = eval(pvars)
+    linv = eval(linv)
+    examples =[]
+    for p,q in zip(P,Q):
+        example ={}
+        example['P'] = eval(p)
+        example['p_str'] = p
+        example['Q'] = eval(q)
+        example['q_str'] = q
+        examples.append(example)
+    vars_types = get_vars_types(examples,pvars)
+    return program,linv,pvars,vars_types,P,Q,examples
+
+def run_pbe_simple_synth():
+    global curr_window,text_ex,text_prog,working_wp,pbe_simple_dict
+    first_key,example = next(iter(pbe_simple_dict.items()))
+    del pbe_simple_dict[first_key]
+    print_to_example(first_key,example['program'],example['linv'],example['pvars'],example['P'],example['Q'])
+    program,linv,pvars,vars_types,P,Q,examples = process_all_inputs(example)
+    run_wp(program,linv,pvars,vars_types,P,Q,examples,text_prog,mode="PBE")
     working_wp = False
 
 def run_pbe_program_synth():
     global curr_window,text_ex,text_prog,working_wp,pbe_program_dict
     first_key = next(iter(pbe_program_dict.keys()))
     example = pbe_program_dict.pop(first_key)
-    program = example['program']
-    linv = example['linv']
-    pvars = example['pvars']
-    P = example['P']
-    Q = example['Q']
-    vars_type = example['vars_type']
-    print_to_example(first_key,program,linv,pvars,P,Q)
-    run_wp(program,linv,pvars,vars_type,P,Q,text_prog,mode="PBE")
+    print_to_example(first_key,example['program'],example['linv'],example['pvars'],example['P'],example['Q'])
+    program,linv,pvars,vars_types,P,Q,examples = process_all_inputs(example)
+    run_wp(program,linv,pvars,vars_types,P,Q,examples,text_prog,mode="PBE")
     working_wp = False
 
 def run_assert_simple_synth():
     global curr_window,text_ex,text_prog,working_wp,assert_simple_dict
     first_key = next(iter(assert_simple_dict.keys()))
     example = assert_simple_dict.pop(first_key)
-    program = example['program']
-    linv = example['linv']
-    pvars = example['pvars']
-    P = example['P']
-    Q = example['Q']
-    vars_type = example['vars_type']
-    print_to_example(first_key,program,linv,pvars,P,Q)
-    run_wp(program,linv,pvars,vars_type,P,Q,text_prog,mode="ASSERT")
+    print_to_example(first_key,example['program'],example['linv'],example['pvars'],example['P'],example['Q'])
+    program,linv,pvars,vars_types,P,Q,examples = process_all_inputs(example)
+    run_wp(program,linv,pvars,vars_types,P,Q,examples,text_prog,mode="ASSERT")
     working_wp = False
 
 
@@ -98,14 +122,9 @@ def run_assert_program_synth():
     global curr_window,text_ex,text_prog,working_wp,assert_program_dict
     first_key = next(iter(assert_program_dict.keys()))
     example = assert_program_dict.pop(first_key)
-    program = example['program']
-    linv = example['linv']
-    pvars = example['pvars']
-    P = example['P']
-    Q = example['Q']
-    vars_type = example['vars_type']
-    print_to_example(first_key,program,linv,pvars,P,Q)
-    run_wp(program,linv,pvars,vars_type,P,Q,text_prog,mode="ASSERT")
+    print_to_example(first_key,example['program'],example['linv'],example['pvars'],example['P'],example['Q'])
+    program,linv,pvars,vars_types,P,Q,examples = process_all_inputs(example)
+    run_wp(program,linv,pvars,vars_types,P,Q,examples,text_prog,mode="ASSERT")
     working_wp = False
 
 
@@ -155,14 +174,18 @@ def run(synthesizer_mode):
         elif(synthesizer_mode == 'ASSERT - As Part Of Program'): curr_window.perform_long_operation(lambda: run_assert_program_synth(), '-OPERATION DONE-')
     else: sg.popup_quick_message("Running right now\nPlease wait until finish running the program",auto_close_duration=3)
 
-def run_pbe_simple_synth_user(program,linv,pvars,P,Q):
-    run_wp(program,linv,pvars,[],P,Q,text_prog,mode="PBE")
-def run_pbe_program_synth_user(program,linv,pvars,P,Q):
-    run_wp(program,linv,pvars,[],P,Q,text_prog,mode="PBE")
-def run_assert_simple_synth_user(program,linv,pvars,P,Q):
-    run_wp(program,linv,pvars,[],[],text_prog,mode="ASSERT")
-def run_assert_program_synth_user(program,linv,pvars,P,Q):
-    run_wp(program,linv,pvars,[],[],text_prog,mode="ASSERT")
+def run_pbe_simple_synth_user(program,linv,pvars,vars_types,P,Q,examples,Q_values):
+    global text_prog
+    run_wp(program,linv,pvars,vars_types,P,Q,examples,text_prog,mode="PBE",Q_values=Q_values)
+
+def run_pbe_program_synth_user(program,linv,pvars,vars_types,P,Q,examples,Q_values):
+    run_wp(program,linv,pvars,vars_types,P,Q,examples,text_prog,mode="PBE",Q_values=Q_values)
+
+def run_assert_simple_synth_user(program,linv,pvars,vars_types,P,Q,examples,Q_values):
+    run_wp(program,linv,pvars,vars_types,P,Q,examples,text_prog,mode="ASSERT",Q_values=Q_values)
+
+def run_assert_program_synth_user(program,linv,pvars,vars_types,P,Q,examples,Q_values):
+    run_wp(program,linv,pvars,vars_types,P,Q,examples,text_prog,mode="ASSERT",Q_values=Q_values)
 
 
 def make_lambda(str_cond):
@@ -202,10 +225,53 @@ def make_lambda(str_cond):
     lambda_func = generate_lambda(parsed_condition)
     return lambda_func
 
-def process_input(program,linv,pvars,P,Q):
-    #TODO need to implement
-    raise NotImplemented
-    return program,linv,pvars,P,Q
+def convert_user_input_to_vars_type(pvars,Q):
+    vars_types_temp = {}
+    vars_types = {}
+    expression = Q
+    Q_values = {}
+    for var_name in pvars:
+        pattern = fr"{re.escape(var_name)}\s*==\s*(\d+)"
+        match = re.search(pattern, expression)
+        value = eval(match.group(1))
+        Q_values[var_name] = value
+        vars_types_temp[var_name] = value
+    for key,var in vars_types_temp.items():
+        if isinstance(var,int):
+            vars_types[key] = Int
+        if isinstance(var,str):
+            vars_types[key] = String
+    return vars_types, Q_values
+
+def convert_to_z3_expression(py_expression):
+
+    # Split each 'or' token by 'and'
+    and_tokens = py_expression.split(' and ')
+    stack,rest = and_tokens[0],and_tokens[1:]
+    # Initialize an empty list for 'and' conditions in this 'or' token
+    # Combine 'and' conditions in this 'or' token using 'And'
+    for compare in rest:
+        stack = f'And( {stack}, {compare} )'
+    
+    return f"lambda d: {stack}"
+
+def convert_user_input_to_examples(P,Q,pvars):
+    pass
+
+def process_user_mode_input(program,linv,pvars,P,Q):
+    #TODO need to implement for long programs
+    # program = program.replace("\n","")
+    examples = []
+    example = {}
+    pvars=eval(pvars)
+    vars_types,Q_values = convert_user_input_to_vars_type(pvars,P)
+    linv=eval(convert_to_z3_expression(linv))
+    P=eval(convert_to_z3_expression(P))
+    Q=eval(convert_to_z3_expression(Q))
+    example['P'] = P
+    example['Q'] = Q
+    examples.append(example)
+    return program,linv,pvars,vars_types,P,Q,examples,Q_values
 
 def run_user_synth(program,linv,pvars,P,Q,synthesizer_mode):
     global curr_window, working_wp,text_ex,text_prog
@@ -215,15 +281,15 @@ def run_user_synth(program,linv,pvars,P,Q,synthesizer_mode):
     text_prog = curr_window["-OUT_PROG-"].Widget
     text_prog.tag_config("program", foreground="cyan")
     text_prog.tag_config("title", foreground="white")
-    program,linv,pvars,P,Q = process_input(program,linv,pvars,P,Q)
+    program,linv,pvars,vars_types,P,Q, examples,Q_values= process_user_mode_input(program,linv,pvars,P,Q)
     if not working_wp:
         working_wp = True
-        if(synthesizer_mode == 'PBE - Simple'): curr_window.perform_long_operation(lambda: run_pbe_simple_synth_user(program,linv,pvars,P,Q), '-OPERATION DONE-')
-        elif(synthesizer_mode == 'PBE - As Part Of Program'): curr_window.perform_long_operation(lambda: run_pbe_simple_synth_user(program,linv,pvars,P,Q), '-OPERATION DONE-')
-        elif(synthesizer_mode == 'ASSERT - Simple'): curr_window.perform_long_operation(lambda: run_pbe_simple_synth_user(program,linv,pvars,P,Q), '-OPERATION DONE-')
-        elif(synthesizer_mode == 'ASSERT - As Part Of Program'): curr_window.perform_long_operation(lambda: run_pbe_simple_synth_user(program,linv,pvars,P,Q), '-OPERATION DONE-')
+        if(synthesizer_mode == 'PBE - Simple'): curr_window.perform_long_operation(lambda: run_pbe_simple_synth_user(program,linv,pvars,vars_types,P,Q,examples,Q_values), '-OPERATION DONE-')
+        elif(synthesizer_mode == 'PBE - As Part Of Program'): curr_window.perform_long_operation(lambda: run_pbe_simple_synth_user(program,linv,pvars,vars_types,P,Q,examples,Q_values), '-OPERATION DONE-')
+        elif(synthesizer_mode == 'ASSERT - Simple'): curr_window.perform_long_operation(lambda: run_pbe_simple_synth_user(program,linv,pvars,vars_types,P,Q,examples,Q_values), '-OPERATION DONE-')
+        elif(synthesizer_mode == 'ASSERT - As Part Of Program'): curr_window.perform_long_operation(lambda: run_pbe_simple_synth_user(program,linv,pvars,vars_types,P,Q,examples,Q_values), '-OPERATION DONE-')
     else: sg.popup_quick_message("Running right now\nPlease wait until finish running the program",auto_close_duration=3)
-    print_to_example("User Input",program,linv,pvars,P,Q)
+    # print_to_example("User Input",program,linv,pvars,P,Q)
     # run_wp(program,linv,pvars,vars_type,P,Q,text_prog,mode="PBE")
 
 def check_input(program,linv,pvars,P,Q):

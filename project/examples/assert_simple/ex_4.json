@@ -1,6 +1,5 @@
 {
     "program": "sum := a + ?? ; assert sum = a + a",
     "linv": "lambda d: d['a'] >= 0",
-    "pvars": ["a", "sum"],
-    "vars_type": {"a": "Int", "sum": "Int"}
+    "pvars": "['a', 'sum']"
 }
