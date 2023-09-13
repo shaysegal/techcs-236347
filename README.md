@@ -21,6 +21,7 @@ Our synthesizer operates in four primary modes:
 -
 -
 - 
+
 ## Usage
 
 #### Run Through Examples mode:
@@ -39,8 +40,39 @@ Our synthesizer operates in four primary modes:
 ** The convention of inputs:
 - PVars should be of format: ['S'] where S is a string
 - 
+-
+-
 
-## Demo
+## Setup
+(on a unix based system or WSL enviroment)
+
+python version must be AT LEAST 3.10.*
+
+1. pull the git reposetory of the project using:
+```console
+git pull https://github.com/shaysegal/techcs-236347/tree/master
+```
+
+2. install z3 solver on the enviroment:
+```console
+pip install z3-solver
+```
+
+3. install tkinter on the enviroment:
+```console
+pip install tk
+```
+for mac users you might also need to do
+```console
+brew install python-tk
+```
+
+4. install pysimplegui on the enviroment:
+```console
+pip install pysimplegui
+```
+
+#### To run the synthisizer, run the main.py file in the repo.## Demo
 
 A demo of the User Input mode:
 
