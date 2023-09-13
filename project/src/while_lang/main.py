@@ -11,10 +11,10 @@ from collections import OrderedDict
 window = Window()
 curr_window = window.get_curr_window()
 
-PBE_SIMPLE_DICT = 'project/examples/pbe_simple/'
-PBE_PROGRAM_DICT = 'project/examples/pbe_program/'
-ASSERT_SIMPLE_DICT = 'project/examples/assert_simple/'
-ASSERT_PROGRAM_DICT = 'project/examples/assert_program/'
+PBE_SIMPLE_DICT = 'examples/pbe_simple/'
+PBE_PROGRAM_DICT = 'examples/pbe_program/'
+ASSERT_SIMPLE_DICT = 'examples/assert_simple/'
+ASSERT_PROGRAM_DICT = 'examples/assert_program/'
 
 
 def read_jsons_from_dir(directory_path):
