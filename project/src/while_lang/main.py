@@ -239,7 +239,7 @@ def convert_user_input_to_vars_type(pvars,Q):
     expression = Q
     Q_values = {}
     for var_name in pvars:
-        pattern = fr"{re.escape(var_name)}\s*==\s*(\d+)"
+        pattern = fr"{re.escape(var_name)}\s*==\s*((\d+)|(\w+))"
         match = re.search(pattern, expression)
         value = eval(match.group(1))
         Q_values[var_name] = value
@@ -272,7 +272,21 @@ def process_user_mode_input(program,linv,pvars,P,Q):
     examples = []
     example = {}
     pvars=eval(pvars)
-    vars_types,Q_values = convert_user_input_to_vars_type(pvars,P)
+    vars_types,Q_values = convert_user_input_to_vars_type(pvars,Q)
+    
+    for v in pvars:
+        v_to_replace = re.findall(f'{v}\s*[<>=!]+',linv)
+        if len(v_to_replace):
+            v_to_replace = v_to_replace[0]
+            linv = linv.replace(v_to_replace,v_to_replace.replace(v,f"d['{v}']"))
+        v_to_replace = re.findall(f'{v}\s*[<>=!]+',P)
+        if len(v_to_replace):
+            v_to_replace = v_to_replace[0]
+            P = P.replace(v_to_replace,v_to_replace.replace(v,f"d['{v}']"))
+        v_to_replace = re.findall(f'{v}\s*[<>=!]+',Q)
+        if len(v_to_replace):
+            v_to_replace = v_to_replace[0]
+            Q =  Q.replace(v_to_replace,v_to_replace.replace(v,f"d['{v}']"))
     linv=eval(convert_to_z3_expression(linv))
     P=eval(convert_to_z3_expression(P))
     Q=eval(convert_to_z3_expression(Q))
