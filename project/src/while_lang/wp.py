@@ -249,16 +249,19 @@ def inner_verify(P, ast, Q, env ,linv,global_env):
             P = linv
             b , c = ast.subtrees
             b = transform_cond(b, global_env)
+            while_env = global_env.copy()
+            for idx,key in enumerate(global_env.keys()):
+                while_env[key]=Int(key+str(idx)) if type(global_env[key]) == z3.ArithRef else String(key+str(idx))
 
             return And(P(env),
-                       ForAll(list(global_env.values()),                  
+                       ForAll([while_env[z3val] for z3val in filter(lambda val : val in c.terminals ,while_env.keys())],                  
                               And(
                                 Implies(
-                                    And(P(global_env),b),
-                                        inner_verify(P,c,linv,global_env.copy(),linv,global_env)),
+                                    And(P(while_env),b),
+                                        inner_verify(P,c,linv,while_env.copy(),linv,while_env)),
                                 Implies(
-                                    And(P(global_env),Not(b)),
-                                        Q(global_env))
+                                    And(P(while_env),Not(b)),
+                                        Q(while_env))
                                   )
                                 )
                         )
@@ -404,14 +407,52 @@ def convert_to_z3_expression(py_expression):
         stack = f'And( {stack}, {compare} )'
     
     return f"lambda d: {stack}"
-def calucate_Q_reverse(after_values,program_ast):
+
+def calucate_P(before_values,program_ast,skatch_found=[False]):
     if program_ast.root == ";":
-        before_values = calucate_Q_reverse(after_values,program_ast.subtrees[1])
-        return calucate_Q_reverse(before_values,program_ast.subtrees[0])
+        after_values = calucate_P(before_values,program_ast.subtrees[0],skatch_found)
+        if skatch_found[0]:
+            return after_values
+        return calucate_P(after_values,program_ast.subtrees[1],skatch_found)
     if program_ast.root == "if":
         condition = program_ast.subtrees[0]
-        then_expr_values = calucate_Q_reverse(after_values,program_ast.subtrees[1])
-        else_expr_values = calucate_Q_reverse(after_values,program_ast.subtrees[2])
+        cond_value = transform_cond(condition,before_values)
+        if cond_value:
+            return calucate_P(before_values,program_ast.subtrees[1],skatch_found)
+        return calucate_P(before_values,program_ast.subtrees[2],skatch_found)
+    if program_ast.root == ":=":
+        if '??' in program_ast.terminals:
+            skatch_found[0]=True
+            return before_values
+        changed_variable = program_ast.subtrees[0].subtrees[0].root
+        after_value = transform_cond(program_ast.subtrees[1],before_values)
+        after_values = {key: value for key, value in before_values.items() if key!=changed_variable}
+        after_values[changed_variable]=after_value
+        return after_values
+    if program_ast.root == "skip":
+        return before_values.copy()
+    if program_ast.root == "while":
+        local_before = before_values.copy()
+        condition = program_ast.subtrees[0]
+        while transform_cond(program_ast.subtrees[1],local_before):
+            local_before = calucate_P(local_before,program_ast.subtrees[1],skatch_found)
+        return local_before
+
+
+
+def calucate_Q_reverse(after_values,program_ast,before_skatch_values,decision=False):
+    if program_ast.root == ";":
+        before_values = calucate_Q_reverse(after_values,program_ast.subtrees[1],before_skatch_values)
+        values = calucate_Q_reverse(before_values,program_ast.subtrees[0],before_skatch_values)
+        if values == None : # a decision in subtree 1 is wrong
+            before_values = calucate_Q_reverse(after_values,program_ast.subtrees[1],before_skatch_values,True)
+            return calucate_Q_reverse(before_values,program_ast.subtrees[0],before_skatch_values)
+        else: 
+            return values
+    if program_ast.root == "if":
+        condition = program_ast.subtrees[0]
+        then_expr_values = calucate_Q_reverse(after_values,program_ast.subtrees[1],before_skatch_values)
+        else_expr_values = calucate_Q_reverse(after_values,program_ast.subtrees[2],before_skatch_values)
         then_cond_value = transform_cond(condition,then_expr_values)
         else_cond_value = transform_cond(condition,else_expr_values)
         if then_cond_value and else_cond_value:
@@ -419,9 +460,32 @@ def calucate_Q_reverse(after_values,program_ast):
         elif (not then_cond_value) and (not else_cond_value):
             return else_expr_values
         else : # it's a mismatch and we have to choose we choose True
-            return then_expr_values
+            return then_expr_values if decision else else_expr_values
+    if program_ast.root == "while":
+        local_after = after_values.copy()
+        '''
+        we impl :
+        while condition do body ->
+                        ---- 
+        x # of unroll  |   if condition then body else skip
+                        ----
+        '''
+        condition = program_ast.subtrees[0]
+        for _ in range(0,4): # number of unrolls 
+            condition = program_ast.subtrees[0]
+            before_while_check = transform_cond(condition,local_after)
+            if (not before_while_check) and decision:
+                return local_after    
+            body_values = calucate_Q_reverse(local_after,program_ast.subtrees[1],before_skatch_values)
+            if transform_cond(condition,body_values):
+                local_after = body_values
+        return local_after
+    
     if program_ast.root == ":=":
         if '??' in program_ast.terminals:
+            if sum([1 if after_values[k]!=before_skatch_values[k] else 0 for k in after_values.keys()]) >1 :
+                # not good choices 
+                return None
             return after_values
         changed_variable = program_ast.subtrees[0].subtrees[0].root
         reversed_value = transform_reverse_cond(program_ast.subtrees[1],after_values)
@@ -459,7 +523,8 @@ def run_wp(program,linv,pvars,var_types,P,Q,examples,text_prog,mode,Q_values=Non
             if ast_prog:
                 if not got_q_values:
                     Q_values=extract_values_from_Q(example['q_str'],env)
-                new_Q_values = calucate_Q_reverse(Q_values,ast_prog)
+                p_values_till_skatch = calucate_P(extract_values_from_Q(example['p_str'],env),ast_prog)
+                new_Q_values = calucate_Q_reverse(Q_values,ast_prog,p_values_till_skatch)
                 post_id, _,templete = sketch_verify(P, ast_prog, Q, env,linv=linv,global_env=env)
                 Q_values_store.append(new_Q_values)
                 if god_program :
@@ -484,5 +549,7 @@ def run_wp(program,linv,pvars,var_types,P,Q,examples,text_prog,mode,Q_values=Non
     if 'p_str' in examples[0]:
         P=eval(convert_to_z3_expression(re.split('lambda \w\: ?', examples[0]['p_str'])[1]))
         Q=eval(convert_to_z3_expression(re.split('lambda \w\: ?', examples[0]['q_str'])[1]))
-    verify(P, ast_program, Q,pvars, linv=linv,env=env,text_prog=text_prog)
+    verify_env = env.copy()
+    del verify_env["types"]
+    verify(P, ast_program, Q,pvars, linv=linv,env=verify_env,text_prog=text_prog)
     
