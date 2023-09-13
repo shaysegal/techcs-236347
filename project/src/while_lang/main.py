@@ -179,12 +179,15 @@ def run_pbe_simple_synth_user(program,linv,pvars,vars_types,P,Q,examples,Q_value
     run_wp(program,linv,pvars,vars_types,P,Q,examples,text_prog,mode="PBE",Q_values=Q_values)
 
 def run_pbe_program_synth_user(program,linv,pvars,vars_types,P,Q,examples,Q_values):
+    global text_prog
     run_wp(program,linv,pvars,vars_types,P,Q,examples,text_prog,mode="PBE",Q_values=Q_values)
 
 def run_assert_simple_synth_user(program,linv,pvars,vars_types,P,Q,examples,Q_values):
+    global text_prog
     run_wp(program,linv,pvars,vars_types,P,Q,examples,text_prog,mode="ASSERT",Q_values=Q_values)
 
 def run_assert_program_synth_user(program,linv,pvars,vars_types,P,Q,examples,Q_values):
+    global text_prog
     run_wp(program,linv,pvars,vars_types,P,Q,examples,text_prog,mode="ASSERT",Q_values=Q_values)
 
 
@@ -285,9 +288,9 @@ def run_user_synth(program,linv,pvars,P,Q,synthesizer_mode):
     if not working_wp:
         working_wp = True
         if(synthesizer_mode == 'PBE - Simple'): curr_window.perform_long_operation(lambda: run_pbe_simple_synth_user(program,linv,pvars,vars_types,P,Q,examples,Q_values), '-OPERATION DONE-')
-        elif(synthesizer_mode == 'PBE - As Part Of Program'): curr_window.perform_long_operation(lambda: run_pbe_simple_synth_user(program,linv,pvars,vars_types,P,Q,examples,Q_values), '-OPERATION DONE-')
-        elif(synthesizer_mode == 'ASSERT - Simple'): curr_window.perform_long_operation(lambda: run_pbe_simple_synth_user(program,linv,pvars,vars_types,P,Q,examples,Q_values), '-OPERATION DONE-')
-        elif(synthesizer_mode == 'ASSERT - As Part Of Program'): curr_window.perform_long_operation(lambda: run_pbe_simple_synth_user(program,linv,pvars,vars_types,P,Q,examples,Q_values), '-OPERATION DONE-')
+        elif(synthesizer_mode == 'PBE - As Part Of Program'): curr_window.perform_long_operation(lambda: run_pbe_program_synth_user(program,linv,pvars,vars_types,P,Q,examples,Q_values), '-OPERATION DONE-')
+        elif(synthesizer_mode == 'ASSERT - Simple'): curr_window.perform_long_operation(lambda: run_assert_simple_synth_user(program,linv,pvars,vars_types,P,Q,examples,Q_values), '-OPERATION DONE-')
+        elif(synthesizer_mode == 'ASSERT - As Part Of Program'): curr_window.perform_long_operation(lambda: run_assert_program_synth_user(program,linv,pvars,vars_types,P,Q,examples,Q_values), '-OPERATION DONE-')
     else: sg.popup_quick_message("Running right now\nPlease wait until finish running the program",auto_close_duration=3)
     # print_to_example("User Input",program,linv,pvars,P,Q)
     # run_wp(program,linv,pvars,vars_type,P,Q,text_prog,mode="PBE")
