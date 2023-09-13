@@ -97,6 +97,10 @@ def process_all_inputs(example):
 
 def run_pbe_simple_synth():
     global curr_window,text_ex,text_prog,working_wp,pbe_simple_dict
+    if len(pbe_simple_dict) == 0:
+        sg.popup_quick_message("No more examples to run\nPlease choose another mode",auto_close_duration=3)
+        working_wp = False
+        return
     first_key,example = next(iter(pbe_simple_dict.items()))
     del pbe_simple_dict[first_key]
     print_to_example(first_key,example['program'],example['linv'],example['pvars'],example['P'],example['Q'])
@@ -106,6 +110,10 @@ def run_pbe_simple_synth():
 
 def run_pbe_program_synth():
     global curr_window,text_ex,text_prog,working_wp,pbe_program_dict
+    if len(pbe_program_dict) == 0:
+        sg.popup_quick_message("No more examples to run\nPlease choose another mode",auto_close_duration=3)
+        working_wp = False
+        return
     first_key = next(iter(pbe_program_dict.keys()))
     example = pbe_program_dict.pop(first_key)
     print_to_example(first_key,example['program'],example['linv'],example['pvars'],example['P'],example['Q'])
@@ -115,6 +123,10 @@ def run_pbe_program_synth():
 
 def run_assert_simple_synth():
     global curr_window,text_ex,text_prog,working_wp,assert_simple_dict
+    if len(assert_simple_dict) == 0:
+        sg.popup_quick_message("No more examples to run\nPlease choose another mode",auto_close_duration=3)
+        working_wp = False
+        return
     first_key = next(iter(assert_simple_dict.keys()))
     example = assert_simple_dict.pop(first_key)
     print_to_example(first_key,example['program'],example['linv'],example['pvars'],example['P'],example['Q'])
@@ -125,6 +137,10 @@ def run_assert_simple_synth():
 
 def run_assert_program_synth():
     global curr_window,text_ex,text_prog,working_wp,assert_program_dict
+    if len(assert_program_dict) == 0:
+        sg.popup_quick_message("No more examples to run\nPlease choose another mode",auto_close_duration=3)
+        working_wp = False
+        return
     first_key = next(iter(assert_program_dict.keys()))
     example = assert_program_dict.pop(first_key)
     print_to_example(first_key,example['program'],example['linv'],example['pvars'],example['P'],example['Q'])
@@ -328,6 +344,8 @@ def process_user_input():
     event, values = curr_window.read()
     while not (event == sg.WIN_CLOSED or event=="Exit"):
         if event == "Go":
+            curr_window["-OUT_EXAMPLE-"].update("")
+            curr_window["-OUT_PROG-"].update("")
             synthesizer_mode = values["-SYNTH_MODE-"]
             run(synthesizer_mode)
         elif event == "Next Example":
