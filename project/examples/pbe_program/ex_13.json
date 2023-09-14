@@ -1,9 +1,0 @@
-{
-    "program": "i := ?? ;  while y > 0 do ( y := y - 1 )",
-    "linv": "lambda d: d['y'] >= 0",
-    "pvars": "['x','i', 'y']",
-    "vars_type": "{'i': 'Int','x': 'Int', 'y': 'Int'}",
-    "P": ["lambda d: d['x'] == 3 and d['y'] == 4 and d['i'] == 0","lambda d: d['x'] == 1 and d['y'] == 4 and d['i'] == 0"],
-    "Q": ["lambda d: d['x'] == 3 and d['y'] == 0 and d['i'] == 12","lambda d: d['x'] == 1 and d['y'] == 0 and d['i'] == 4"]
-}
-

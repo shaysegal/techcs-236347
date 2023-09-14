@@ -1,0 +1,8 @@
+{
+    "program": "i := 4 ; if i > 0 then x := x - 1 else if i < 0 then x := ?? else x := x + 1",
+    "linv": "lambda d: d['i'] >= 0 and d['x'] >= 0",
+    "pvars": "['x', 'i']",
+    "vars_type": "{'i': 'Int', 'x': 'Int'}",
+    "P": ["lambda d: d['x'] == 3 and d['i'] == 0","lambda d: d['x'] == 2 and d['i'] == -1"],
+    "Q": ["lambda d: d['x'] == 3 and d['i'] == 0","lambda d: d['x'] == 2 and d['i'] == 0"]
+}

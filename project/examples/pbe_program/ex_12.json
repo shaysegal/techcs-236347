@@ -1,8 +1,7 @@
 {
-    "program": "i := ?? ; if x = 'Hi' then y := y concat '1' else y := y concat '2'",
-    "linv": "lambda d: d['y'] >= 0",
-    "pvars": "['x','i', 'y']",
-    "vars_type": "{'i': 'Int','x': 'String', 'y': 'String'}",
-    "P": ["lambda d: d['x'] == 'Hi' and d['y'] == 'Bye' and d['i'] == 0","lambda d: d['x'] == 'Hello' and d['y'] == 'Bye' and d['i'] == 0"],
-    "Q": ["lambda d: d['x'] == 'Hi' and d['y'] == 'Bye1' and d['i'] == 2","lambda d: d['x'] == 'Hello' and d['y'] == 'Bye2' and d['i'] == 5"]
+    "program": "i := ?? ; while i > 0 do ( if i > 3 then x := x * 2 else x := x + 1 ; i := i - 1 )",
+    "linv": "lambda d: d['i'] >= 0",
+    "pvars": "['x', 'i']",
+    "P": ["lambda d: d['x'] == 1 and d['i'] == 0","lambda d: d['x'] == 2 and d['i'] == 1"],
+    "Q": ["lambda d: d['x'] == 1 and d['i'] == 0","lambda d: d['x'] == 16 and d['i'] == 0"]
 }
