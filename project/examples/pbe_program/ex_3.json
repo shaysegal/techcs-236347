@@ -1,7 +1,8 @@
 {
-      "program": "x := ?? ; while x > 0 do ( if x > 5 then x := x - 1 else x := x * 2 )",
-      "linv": "lambda d: d['x'] >= 0",
-      "pvars": "['x']",
-      "P": ["lambda d: d['x'] == 0","lambda d: d['x'] == 1"],
-      "Q": ["lambda d: d['x'] == 0","lambda d: d['x'] == 10"]
-  }
+    "program": "i := ?? ;  x := x + y ; if (x * y) < 10 then y := y + 1 else skip ",
+    "linv": "lambda d: d['y'] >= 0",
+    "pvars": "['x','i', 'y']",
+    "vars_type": "{'i': 'Int','x': 'Int', 'y': 'Int'}",
+    "P": ["lambda d: d['x'] == 3 and d['y'] == 4 and d['i'] == 0","lambda d: d['x'] == 1 and d['y'] == 2 and d['i'] == 0"],
+    "Q": ["lambda d: d['x'] == 7 and d['y'] == 4 and d['i'] == 12","lambda d: d['x'] == 3 and d['y'] == 3 and d['i'] == 2"]
+}

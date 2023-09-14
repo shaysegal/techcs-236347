@@ -1,6 +1,8 @@
 {
-    "program": "g := 1 ; while g < n do ( h := h - ?? ; assert h = n - g )",
-    "linv": "lambda d: d['n'] >= 5",
-    "pvars": ["g", "h", "n"],
-    "vars_type": {"g": "Int", "h": "Int", "n": "Int"}
+    "program": "quotient := a / ?? ; assert quotient = a / 2 ; if quotient = 0 then a := 6 else a := 2",
+    "linv": "lambda d: d['a'] >= 0",
+    "pvars": "['a', 'quotient']",
+    "vars_type": {"a": "Int", "quotient": "Int"},
+    "P": ["lambda d: d['quotient'] == 0 and d['a'] == 6"],
+    "Q": ["lambda d: d['quotient'] == 3 and d['a'] == 2"]
 }

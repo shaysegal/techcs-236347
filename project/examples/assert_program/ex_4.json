@@ -1,6 +1,8 @@
 {
-    "program": "c := 0 ; while c < l do ( d := d * ?? ; assert d = l * c )",
-    "linv": "lambda d: d['l'] > 0",
-    "pvars": ["c", "d", "l"],
-    "vars_type": {"c": "Int", "d": "Int", "l": "Int"}
+    "program": "product := b * ?? ; assert product = b * 3 ; if product = 0 then b := 6 else b := 3",
+    "linv": "lambda d: d['b'] >= 0",
+    "pvars": "['b', 'product']",
+    "vars_type": {"b": "Int", "product": "Int"},
+    "P": ["lambda d: d['product'] == 0 and d['b'] == 6"],
+    "Q": ["lambda d: d['product'] == 18 and d['b'] == 3"]
 }

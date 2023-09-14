@@ -1,7 +1,0 @@
-{
-    "program": "i := ?? ; while i > 0 do ( if i > 3 then x := x * 2 else x := x + 1 ; i := i - 1 )",
-    "linv": "lambda d: d['i'] >= 0",
-    "pvars": "['x', 'i']",
-    "P": ["lambda d: d['x'] == 1 and d['i'] == 0","lambda d: d['x'] == 2 and d['i'] == 1"],
-    "Q": ["lambda d: d['x'] == 1 and d['i'] == 0","lambda d: d['x'] == 16 and d['i'] == 0"]
-}

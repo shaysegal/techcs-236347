@@ -1,7 +1,0 @@
-{
-    "program": "i := ?? ; if ( 'H' indexof x ) = 0 then y := y concat '1' else y := y concat '2'",
-    "linv": "lambda d: d['y'] >= 0",
-    "pvars": "['x', 'i', 'y']",
-    "P": ["lambda d: d['x'] == 'Hi' and d['y'] == 'Bye' and d['i'] == 0", "lambda d: d['x'] == 'Hello' and d['y'] == 'Bye' and d['i'] == 0"],
-    "Q": ["lambda d: d['x'] == 'Hi' and d['y'] == 'Bye1' and d['i'] == 2", "lambda d: d['x'] == 'Hello' and d['y'] == 'Bye2' and d['i'] == 5"]
-}

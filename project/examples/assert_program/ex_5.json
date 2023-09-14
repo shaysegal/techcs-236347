@@ -1,6 +1,8 @@
 {
-    "program": "e := 5 ; while e < m do ( f := f + ?? ; assert f = m + e )",
-    "linv": "lambda d: d['m'] <= 15",
-    "pvars": ["e", "f", "m"],
-    "vars_type": {"e": "Int", "f": "Int", "m": "Int"}
+    "program": "sum := a + ?? ; assert sum = a + 5 ; if sum = 0 then a := 8 else a := 3",
+    "linv": "lambda d: d['a'] >= 0",
+    "pvars": "['a', 'sum']",
+    "vars_type": {"a": "Int", "sum": "Int"},
+    "P": ["lambda d: d['sum'] == 0 and d['a'] == 8"],
+    "Q": ["lambda d: d['sum'] == 13 and d['a'] == 3"]
 }

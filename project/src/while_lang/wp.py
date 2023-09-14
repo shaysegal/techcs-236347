@@ -236,7 +236,7 @@ def send_to_synt_pbe(values_array,post_id,env,template):
                 sol.add(val == z3_lut[key])
         if not should_check:
             continue
-        sol.set("timeout", 2000)
+        sol.set("timeout", 15000)
         status = sol.check()
         if status == sat:
             m = sol.model()
