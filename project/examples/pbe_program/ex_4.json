@@ -1,9 +1,7 @@
 {
-    "program": "n := ?? ; count := 0 ; while count < n do ( count := count + 1 )",
-    "linv": "lambda d: d['n'] >= 0 and d['count'] >= 0",
-    "pvars": "['n', 'count']",
-    "P": ["lambda d: d['n'] == 0 and d['count'] == 0",
-          "lambda d: d['n'] == 5 and d['count'] == 0"],
-    "Q": ["lambda d: d['n'] == 0 and d['count'] == 0",
-          "lambda d: d['n'] == 5 and d['count'] == 5"]
-}
+      "program": "x := ?? ; if x > 3 then x := x - 1 else x := x * 2",
+      "linv": "lambda d: d['x'] >= 0",
+      "pvars": "['x']",
+      "P": ["lambda d: d['x'] == 0","lambda d: d['x'] == 1"],
+      "Q": ["lambda d: d['x'] == 0","lambda d: d['x'] == 6"]
+  }

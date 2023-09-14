@@ -1,10 +1,8 @@
 {
-    "program": "t := x * ?? + y ; assert t = x + ( 2 * y )",
-    "linv": "lambda d: d['x'] >= 0",
-    "pvars": "['t', 'x', 'y']",
-    "vars_type": "{'t': Int, 'x': Int, 'y': Int}",
-    "P": ["lambda d: d['t'] == 0 and d['x'] == 2 and d['y'] == 2"],
-    "Q": ["lambda d: d['t'] == 4 and d['x'] == 2 and d['y'] == 2"]
+    "program": "result := ?? ; assert result = a * b",
+    "linv": "lambda d: d['a'] >= 0 and d['b'] >= 0",
+    "pvars": "['a', 'b', 'result']",
+    "vars_type": "{'a': Int, 'b': Int, 'result': Int}",
+    "P": ["lambda d: d['a'] == 6 and d['b'] == 3 and d['result'] == 0"],
+    "Q": ["lambda d: d['a'] == 6 and d['b'] == 3 and d['result'] == 18"]
 }
-
-

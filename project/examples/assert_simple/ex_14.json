@@ -1,10 +1,10 @@
 {
-    "program": "t := x * ?? + y ; assert t = x + y + x",
+    "program": "t := x + ?? ; assert t = x + y + x + y",
     "linv": "lambda d: d['x'] >= 0",
     "pvars": "['t', 'x', 'y']",
     "vars_type": "{'t': Int, 'x': Int, 'y': Int}",
     "P": ["lambda d: d['t'] == 0 and d['x'] == 2 and d['y'] == 2"],
-    "Q": ["lambda d: d['t'] == 6 and d['x'] == 2 and d['y'] == 2"]
+    "Q": ["lambda d: d['t'] == 8 and d['x'] == 2 and d['y'] == 2"]
 }
 
 

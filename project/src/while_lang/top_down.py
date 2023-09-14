@@ -70,7 +70,6 @@ def while_tree_to_z3(node, variables):
         return Int(node.root)
     if "string" in node.root:
         return String(node.root)
-    print("here")
 # Define a recursive function to convert the AST to a Z3 formula
 def ast_to_z3(node, variables,free_vars=[]):
     if isinstance(node, ast.Compare):

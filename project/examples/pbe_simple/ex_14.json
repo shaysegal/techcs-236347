@@ -1,7 +1,9 @@
 {
-    "program": "a_len := ??",
+    "program": "sum := ??",
     "linv": "lambda d: isinstance(d['a'], str)",
-    "pvars": "['a', 'a_len']",
-    "P": ["lambda d: d['a'] == 'ab ab' and d['a_len'] == 0", "lambda d: d['a'] == 'abc' and d['a_len'] == 0"],
-    "Q": ["lambda d: d['a'] == 'ab ab' and d['a_len'] == 5","lambda d: d['a'] == 'abc' and d['a_len'] == 3"]
+    "pvars": "['a', 'sum']",
+    "P": ["lambda d: d['a'] == 'fun synthesis' and d['sum'] == 0", "lambda d: d['a'] == 'amazing synthesizer' and d['sum'] == 0"],
+    "Q": ["lambda d: d['a'] == 'fun synthesis' and d['sum'] == 13","lambda d: d['a'] == 'amazing synthesizer' and d['sum'] == 19"]
 }
+
+

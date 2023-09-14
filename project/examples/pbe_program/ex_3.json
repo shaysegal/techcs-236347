@@ -1,10 +1,7 @@
 {
-      "program": "n := ?? ; while i < n do ( result := result + 'a' ; i := i + 1 )",
-      "linv": "lambda d: d['n'] >= 0 and isinstance(d['result'], str) and d['i'] >= 0",
-      "pvars": "['n', 'result', 'i']",
-      "vars_type": "{'n': 'Int', 'result': 'String', 'i': 'Int'}",
-      "P": ["lambda d: d['n'] == 0 and d['result'] == '' and d['i'] == 0",
-            "lambda d: d['n'] == 3 and d['result'] == '' and d['i'] == 0"],
-      "Q": ["lambda d: d['n'] == 0 and d['result'] == '' and d['i'] == 0",
-            "lambda d: d['n'] == 3 and d['result'] == 'aaa' and d['i'] == 3"]
+      "program": "x := ?? ; while x > 0 do ( if x > 5 then x := x - 1 else x := x * 2 )",
+      "linv": "lambda d: d['x'] >= 0",
+      "pvars": "['x']",
+      "P": ["lambda d: d['x'] == 0","lambda d: d['x'] == 1"],
+      "Q": ["lambda d: d['x'] == 0","lambda d: d['x'] == 10"]
   }

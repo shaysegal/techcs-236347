@@ -2,6 +2,6 @@
     "program": "x := ?? ",
     "linv": "lambda d: isinstance(d['a'], str) and isinstance(d['b'], str)",
     "pvars": "['a', 'b', 'x']",
-    "P": ["lambda d: d['a'] == 'Hello' and d['b'] == 'world' and d['x'] == 0","lambda d: d['a'] == 'Hey' and d['b'] == 'You' and d['x'] == 0"],
-    "Q": ["lambda d: d['a'] == 'Hello' and d['b'] == 'world' and d['x'] == 10","lambda d: d['a'] == 'Hey' and d['b'] == 'You' and d['x'] == 6"]
+    "P": ["lambda d: d['a'] == 'ab' and d['b'] == 'cd' and d['x'] == 0","lambda d: d['a'] == 'kll' and d['b'] == 'm' and d['x'] == 0"],
+    "Q": ["lambda d: d['a'] == 'ab' and d['b'] == 'cd' and d['x'] == 4","lambda d: d['a'] == 'kll' and d['b'] == 'm' and d['x'] == 5"]
 }

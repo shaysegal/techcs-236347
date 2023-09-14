@@ -1,8 +1,7 @@
 {
-    "program": "e := 5 ; while e < m do ( f := f + ?? ; if (f % e) == 2 then e := e + 2 else skip )",
-    "linv": "lambda d: d['m'] <= 15",
-    "pvars": ["e", "f", "m"],
-    "vars_type": {"e": "Int", "f": "Int", "m": "Int"},
-    "P": ["lambda d: d['e'] == 5 and d['f'] == 10 and d['m'] == 10"],
-    "Q": ["lambda d: d['e'] == 7 and d['f'] == 12 and d['m'] == 10"]
+    "program": "i := ?? ; while i > 0 do ( if i > 3 then x := x * 2 else x := x + 1 ; i := i - 1 )",
+    "linv": "lambda d: d['i'] >= 0",
+    "pvars": "['x', 'i']",
+    "P": ["lambda d: d['x'] == 1 and d['i'] == 0","lambda d: d['x'] == 2 and d['i'] == 1"],
+    "Q": ["lambda d: d['x'] == 1 and d['i'] == 0","lambda d: d['x'] == 16 and d['i'] == 0"]
 }
