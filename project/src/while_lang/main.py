@@ -68,6 +68,7 @@ def get_vars_types(examples,pvars):
         try:
             vars_types[var_name] = eval(match.group(1))
         except:
+            if match == None: return vars_types
             vars_types[var_name] = match.group(1) 
     for key,var in vars_types.items():
         if isinstance(var,int):

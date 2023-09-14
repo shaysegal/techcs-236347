@@ -1,5 +1,5 @@
 {
-    "program": "product := b * ?? ; assert product = 16",
+    "program": "product := b * ?? ; assert product = b * 4",
     "linv": "lambda d: d['b'] >= 0",
     "pvars": "['b', 'product']",
     "vars_type": {"b": "Int", "product": "Int"},

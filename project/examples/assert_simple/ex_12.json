@@ -1,6 +1,7 @@
 {
     "program": "negate := -j + ?? ; assert negate = -j - 1",
     "linv": "lambda d: d['j'] <= 0",
-    "pvars": ["j", "negate"],
-    "vars_type": {"j": "Int", "negate": "Int"}
+    "pvars": "['j', 'negate']",
+    "P": ["lambda d: d['negate'] == 0 and d['j'] == 4"],
+    "Q": ["lambda d: d['negate'] == -5 and d['j'] == 4"]
 }

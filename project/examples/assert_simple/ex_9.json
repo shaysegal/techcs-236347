@@ -1,6 +1,7 @@
 {
     "program": "power := f ** ?? ; assert power = f ** 2",
     "linv": "lambda d: d['f'] < 100",
-    "pvars": ["f", "power"],
-    "vars_type": {"f": "Int", "power": "Int"}
+    "pvars": "['f', 'power']",
+    "P": ["lambda d: d['power'] == 0 and d['f'] == 4"],
+    "Q": ["lambda d: d['power'] == 16 and d['f'] == 4"]
 }

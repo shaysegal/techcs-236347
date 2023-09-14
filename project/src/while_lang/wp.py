@@ -524,7 +524,9 @@ def run_wp(program,linv,pvars,var_types,P,Q,examples,text_prog,mode,Q_values=Non
             god_program = send_to_synt_assert(assert_cond,post_id,templete_prog,env)
             pattern_to_remove = r"assert \w+ = (\w+ [+\-*/] \w+)( [+\-*/] \w+)*( ;)?"
             program = re.sub(pattern_to_remove, "", program)
-        else: text_prog.insert("end", ">> Invalid program.\n", "title")
+        else:
+            text_prog.insert("end", ">> Synthesizer Do Not Support.\n", "title")
+            return
     else:
         first_example = True
         god_program = None
@@ -550,7 +552,8 @@ def run_wp(program,linv,pvars,var_types,P,Q,examples,text_prog,mode,Q_values=Non
                     god_program = send_to_synt_pbe(Q_values_store,post_id,env,templete)
                 
             else:
-                text_prog.insert("end", ">> Invalid program.\n", "title")
+                text_prog.insert("end", ">> Synthesizer Do Not Support.\n", "title")
+                return
 
     if program.endswith('; '): program = program[-1::-1].replace('; ', '',1)[-1::-1]
     if god_program == None:

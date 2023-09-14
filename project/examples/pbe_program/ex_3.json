@@ -1,8 +1,10 @@
 {
-    "program": "c := 0 ; while c < l do ( d := d * ?? ; if (d - c) < 20 then c := c + 4 else skip )",
-    "linv": "lambda d: d['l'] > 0",
-    "pvars": ["c", "d", "l"],
-    "vars_type": {"c": "Int", "d": "Int", "l": "Int"},
-    "P": ["lambda d: d['c'] == 0 and d['d'] == 3 and d['l'] == 8"],
-    "Q": ["lambda d: d['c'] == 4 and d['d'] == 6 and d['l'] == 8"]
-}
+      "program": "n := ?? ; while i < n do ( result := result + 'a' ; i := i + 1 )",
+      "linv": "lambda d: d['n'] >= 0 and isinstance(d['result'], str) and d['i'] >= 0",
+      "pvars": "['n', 'result', 'i']",
+      "vars_type": "{'n': 'Int', 'result': 'String', 'i': 'Int'}",
+      "P": ["lambda d: d['n'] == 0 and d['result'] == '' and d['i'] == 0",
+            "lambda d: d['n'] == 3 and d['result'] == '' and d['i'] == 0"],
+      "Q": ["lambda d: d['n'] == 0 and d['result'] == '' and d['i'] == 0",
+            "lambda d: d['n'] == 3 and d['result'] == 'aaa' and d['i'] == 3"]
+  }
