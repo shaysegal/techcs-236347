@@ -1,5 +1,7 @@
 {
     "program": "sum := a + ?? ; assert sum = a + a",
     "linv": "lambda d: d['a'] >= 0",
-    "pvars": "['a', 'sum']"
+    "pvars": "['a', 'sum']",
+    "P": ["lambda d: d['sum'] == 0 and d['a'] == 4"],
+    "Q": ["lambda d: d['sum'] == 8 and d['a'] == 4"]
 }

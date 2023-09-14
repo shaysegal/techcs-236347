@@ -1,6 +1,7 @@
 {
     "program": "difference := c - ?? ; assert difference = c - 1",
     "linv": "lambda d: d['c'] <= 10",
-    "pvars": ["c", "difference"],
-    "vars_type": {"c": "Int", "difference": "Int"}
+    "pvars": "['c', 'difference']",
+    "P": ["lambda d: d['difference'] == 0 and d['c'] == 4"],
+    "Q": ["lambda d: d['difference'] == 3 and d['c'] == 4"]
 }

@@ -1,0 +1,8 @@
+{
+    "program": "product := b * ?? ; assert product = 16",
+    "linv": "lambda d: d['b'] >= 0",
+    "pvars": "['b', 'product']",
+    "vars_type": {"b": "Int", "product": "Int"},
+    "P": ["lambda d: d['product'] == 0 and d['b'] == 4"],
+    "Q": ["lambda d: d['product'] == 16 and d['b'] == 4"]
+}

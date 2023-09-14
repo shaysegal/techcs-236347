@@ -1,6 +1,8 @@
 {
-    "program": "product := b * ?? ; assert product = b * b",
-    "linv": "lambda d: d['b'] >= 0",
-    "pvars": ["b", "product"],
-    "vars_type": {"b": "Int", "product": "Int"}
+    "program": "result := ?? ; assert result = a * b",
+    "linv": "lambda d: d['a'] >= 0 and d['b'] >= 0",
+    "pvars": "['a', 'b', 'result']",
+    "vars_type": "{'a': Int, 'b': Int, 'result': Int}",
+    "P": ["lambda d: d['a'] == 6 and d['b'] == 3 and d['result'] == 0"],
+    "Q": ["lambda d: d['a'] == 6 and d['b'] == 3 and d['result'] == 18"]
 }
