@@ -1,5 +1,5 @@
 {
-    "program": "y := 0 ; while y < i do ( x := x + ?? ; assert x = y * i ; y := y + 1)",
+    "program": "y := 0 ; while y < i do ( x := x + ?? ; assert x = y * i ; y := y + 1 )",
     "linv": "lambda d: d['i'] >= 0",
     "pvars": "['x', 'y', 'i']",
     "vars_type": "{'x': 'Int', 'y': 'Int', 'i': 'Int'}",

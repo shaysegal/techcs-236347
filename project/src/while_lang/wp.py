@@ -33,7 +33,7 @@ UNARY_OP={'len':Length,#UnaryOP, might need something else - also - return int a
 }
 terminals = set(["skip","string_element", "num", "+", "-", "*", "/", "if", "then", "else", "while", "do", ";",":=", "(", ")","concat","indexof","len"])
 non_terminals = set(["S", "S1", "E", "E_num","E_string"])
-grammar_rules = {
+grammar_rules_origin = {
     "S": ["S1", "S1 ; S"],
     "S1": ["skip", "id := E", "if E then S else S1", "while E do S1", "( S )"],
     "E": ["E_num", "E_num OP E_num"," E_string","E_string OP_STRING E_string","UNARY_STRING_OP E_string"],
@@ -147,9 +147,10 @@ def check_current_values_againt_program(prog,Q_values,post_id):
 
 
 def send_to_synt_assert(assert_cond,post_id,templete_prog,env):
-    global grammar_rules,terminals
+    global grammar_rules_origin,terminals
     var_types = env["types"]
     varables = env.copy()
+    grammar_rules = grammar_rules_origin.copy()
     del varables['types']
     del varables[post_id]
     for var in varables:
@@ -191,10 +192,11 @@ def send_to_synt_assert(assert_cond,post_id,templete_prog,env):
             return program
 
 def send_to_synt_pbe(values_array,post_id,env,template):
-    global grammar_rules,terminals
+    global grammar_rules_origin,terminals
     var_types = env["types"]
     expected_value = values_array[0][post_id]
     prog_values  = values_array[0].copy()
+    grammar_rules = grammar_rules_origin.copy()
     del prog_values[post_id]
     for var in prog_values.keys():
         if var_types[var] == Int and not var in grammar_rules['E_num']:
