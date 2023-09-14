@@ -73,19 +73,33 @@ def transform_cond(cond,env):
             return env[node.subtrees[0].root] if node.subtrees[0].root in env else node.subtrees[0].root
         
 def extract_values_from_Q(Q,env):
-    # raise NotImplemented
-    values = {}
-    # values.update(env)
-    # result = P(env)
-    all_var_regx = "|".join(env.keys())
-    for arg in Q.split('and'):#inspect.getsource(Q).split('and'):
-        # if(arg.endswith('\n')):
-        #     arg = arg[:-1] + ' '
-        var,value = re.findall(f'd\[\'[{all_var_regx}]+\'\]==.+',arg.replace(" ",""))[0].split('==')
-        var = var.split('[')[1].strip("]'")
-        values[var] = eval(value)
+    #? pay attention: this code below here catch the string with the space 
+    lambda_name = re.split('lambda (\w)\: ?',Q)[1]
+    vars_types = {}
+    for var_name in env.keys():
+        if var_name == "types": continue
+        key_to_extract = f"{lambda_name}['{var_name}']"
+        match = re.search(fr"{re.escape(key_to_extract)}\s*==\s*'([^']*)'", Q)
+        if not match:
+            match = re.search(fr"{re.escape(key_to_extract)}\s*==\s*(\d+)", Q)
+        try:
+            vars_types[var_name] = eval(match.group(1))
+        except:
+            vars_types[var_name] = match.group(1) 
+    return vars_types
+        
+    # values = {}
+    # # values.update(env)
+    # # result = P(env)
+    # all_var_regx = "|".join(env.keys())
+    # for arg in Q.split('and'):#inspect.getsource(Q).split('and'):
+    #     # if(arg.endswith('\n')):
+    #     #     arg = arg[:-1] + ' '
+    #     var,value = re.findall(f'd\[\'[{all_var_regx}]+\'\]==.+',arg.replace(" ",""))[0].split('==')
+    #     var = var.split('[')[1].strip("]'")
+    #     values[var] = eval(value)
 
-    return values
+    # return values
 
 def check_current_values_againt_program(prog,Q_values,post_id):
     variables = Q_values.copy()

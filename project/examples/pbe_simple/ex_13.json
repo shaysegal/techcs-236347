@@ -1,0 +1,8 @@
+{
+    "program": "product := c * d * ??",
+    "linv": "lambda d: d['x'] >= 0",
+    "pvars": "['c', 'd', 'product']",
+    "vars_type": "{'c': 'Int', 'd': 'Int', 'product': 'Int'}",
+    "P": ["lambda d: d['c'] == 2 and d['d'] == 6 and d['product'] == 0"],
+    "Q": ["lambda d: d['c'] == 2 and d['d'] == 6 and d['product'] == 24"]
+}
