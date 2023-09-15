@@ -28,7 +28,8 @@ We divided the given and premade examples to "Simple" and "Part Of Program" for 
 ## Synthesizer Limits:
 - Cannot hanlde sketch holes inside the while loop.
 - Cannot hanlde ASSERT expression inside the while loop. 
-- While loop unroll with factor greater than 4.
+- We've limited the synthesis depth to 5 , i.e. we check programs of size 5 or less - this could be changed by the code itself - for pbe in line 210 and for assert in line 170 in wp.py file.
+- we've limited the SMT solver check to 2 seconds per program , this could be changed by the code itself in line 239 in wp.py.
 
 ## Usage
 
